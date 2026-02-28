@@ -25,10 +25,10 @@ const DeckDetail = (
     () => {
 
       return (
-        props.viewer.decks.edges[
+        props.viewer.decks.edges?.[
           0
         ]
-          .node
+          ?.node
       );
     }
   );

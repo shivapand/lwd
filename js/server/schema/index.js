@@ -368,23 +368,12 @@ const viewerType = new GraphQLObjectType(
               ...connectionArgs
             },
             {
-              db
+              db, req
             }
           ) {
 
-            const deckId = (
-              deckTitle
-            ) ?
-              (
-                await deckFindOne(
-                  {
-                    'splash.title': deckTitle
-                  },
-                  undefined,
-                  db
-                )
-              )?._id :
-              _deckId;
+              const deck = (deckTitle) ? (await movieCreate(deckTitle, { spoofInput, genre, createFlag: true }, db, req)) : null;
+              const deckId = (deck) ? deck._id : _deckId;
 
             return deckConnectionGet(
               deckId,
