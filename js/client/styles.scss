@@ -10,12 +10,13 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 
 @import '~react-bootstrap-typeahead/css/Typeahead';
 
-@font-face {
-  font-family: 'Muli';
-  src: url('~fonts/Muli-Italic-VariableFont_wght.ttf');
-}
+//@font-face {
+//  font-family: 'Muli', sans-serif;
+//  src: url('~fonts/Muli-Italic-VariableFont_wght.ttf');
+//}
 
 body {
   font-size: 16px;
+  font-family: sans-serif;
   @extend .bg-dark;
 }
