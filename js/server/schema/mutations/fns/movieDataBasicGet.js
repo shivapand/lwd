@@ -12,18 +12,29 @@ const summaryQueryGet = (title) => {
 };
 
 const parseQueryGet = (title) => {
-  return `https://en.wikipedia.org/w/api.php?action=parse&format=json&page=${titleEncodedGet(title)}&prop=text&origin=*`;
+  return `https://en.wikipedia.org/w/api.php?action=parse&format=json&page=${titleEncodedGet(title)}&prop=text&redirects=1&origin=*`;
 };
 
-const moviePageSectionTextsGetFn = (html, anchorName) => {
+const moviePageSectionTextsGetFn = (html, anchorNames) => {
   if (!html) return null;
-  // Regex to find the content between the headline span and the next header OR end of string
-  const regex = new RegExp(`<span[^>]*class="mw-headline"[^>]*id="${anchorName}"[^>]*>.*?</span>(.*?)(?:<h[2-6]|$)`, 'is');
-  const match = html.match(regex);
   
-  if (match && match[1]) {
-      return match[1].replace(/<[^>]*>?/gm, '').trim();
+  anchorNames = Array.isArray(anchorNames) ? anchorNames : [anchorNames];
+
+  // Strategy 1: Look for the specific mw-headline ID (standard)
+  for (const anchorName of anchorNames) {
+    const regex = new RegExp(`<span[^>]*class="mw-headline"[^>]*id="${anchorName}"[^>]*>.*?</span>(.*?)(?:<h[2-6]|$)`, 'is');
+    const match = html.match(regex);
+    if (match && match[1]) return match[1].replace(/<[^>]*>?/gm, '').trim();
   }
+
+  // Strategy 2: Look for the section title within any header tag (fallback)
+  for (const anchorName of anchorNames) {
+    const cleanName = anchorName.replace(/_/g, ' ');
+    const regex = new RegExp(`<h[2-6][^>]*>.*?${cleanName}.*?</h[2-6]>(.*?)(?:<h[2-6]|$)`, 'is');
+    const match = html.match(regex);
+    if (match && match[1]) return match[1].replace(/<[^>]*>?/gm, '').trim();
+  }
+
   return null;
 };
 
@@ -73,8 +84,8 @@ export default async (title, plotLimit, processFlag = true) => {
     const poster = summaryJson?.originalimage?.source || "https://via.placeholder.com/320x480?text=No+Poster";
     const html = parseJson?.parse?.text?.['*'];
     
-    const castText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, 'Cast'));
-    const plotText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, 'Plot'));
+    const castText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, ['Cast', 'Voice_cast']));
+    const plotText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, ['Plot', 'Synopsis', 'Premise']));
 
     return processFn(title, poster, plotText, castText, plotLimit, processFlag);
   } catch (error) {
