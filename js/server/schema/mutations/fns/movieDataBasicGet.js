@@ -63,7 +63,7 @@ export default async (title, plotLimit, processFlag = true) => {
     }
 
     const poster = summaryJson?.originalimage?.source || "https://via.placeholder.com/320x480?text=No+Poster";
-    const html = parseJson.parse.text['*'];
+    const html = parseJson?.parse?.text?.['*'];
     
     const castText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, 'Cast'));
     const plotText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, 'Plot'));
