@@ -8,9 +8,7 @@ import charactersGenderAssignedGet
 import charactersMetaAssignedGet 
   from './charactersMetaAssignedGet';
 import cardsMetaAssignedGet from './cardsMetaAssignedGet';
-import cardsGifyUrlAssignedGet from 
-  './cardsGifyUrlAssignedGet';
-import deckSpoofableGet 
+import deckSpoofableGet
   from './deckSpoofableGet';
 import deckSpoofedGet from './deckSpoofedGet';
 import deckActorImageIdsAssignedGet
@@ -51,8 +49,7 @@ const deckPreBuiltGet = async (
 
   let characters = await charactersGet(
     movieDataBasic.cast,
-    movieDataBasic.plot,
-    movieDataBasic.plotText
+    movieDataBasic.plot
   );
 
   let cards = cardsGet(
@@ -125,21 +122,23 @@ const deckPostProcessedGet = async (
     deck,
     genre,
     db
-  );
+  )
+    .catch(
+      () => {
+
+        return (
+          deck
+        );
+      }
+    );
 
   deck = deckRenderDetailsAssignedGet(
     deck
   );
 
-  let cards = await cardsGifyUrlAssignedGet(
-    deck.cards,
-    deck.splash.title
+  return (
+    deck
   );
-
-  return {
-    ...deck,
-    cards
-  };
 };
 
 export default async (

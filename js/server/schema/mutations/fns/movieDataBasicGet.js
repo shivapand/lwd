@@ -1,99 +1,170 @@
 'use strict';
 
-import latinize from 'latinize';
-import mediawikiFetch from './mediawikiFetch';
-import movieDataBasicPlotGet from './movieDataBasicPlotGet';
-import movieDataBasicCastGet from './movieDataBasicCastGet';
+import tmdbFetch from './tmdbFetch';
+import wikipediaPlotGet from './wikipediaPlotGet';
+import sentencesTokenizedGet from './sentencesTokenizedGet';
+import sentencesGet from './sentencesGet';
 
-const titleEncodedGet = (title) => encodeURIComponent(title);
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
-const summaryQueryGet = (title) => {
-  return `https://en.wikipedia.org/api/rest_v1/page/summary/${titleEncodedGet(title)}`;
+const PLACEHOLDER_POSTER =
+  'https://via.placeholder.com/320x480?text=No+Poster';
+
+const NON_CHARACTER_NAMES = [
+  'self',
+  'himself',
+  'herself',
+  'themselves',
+  'narrator',
+  'uncredited',
+  'extra',
+  'background'
+];
+
+const genderMapGet = (genderCode) =>
+
+  ({
+    1: 'woman',
+    2: 'man'
+  })[genderCode] || 'unknown';
+
+const characterNameCleanedGet = (character) =>
+  character
+    .split('/')[0]
+    .replace(/\(.*?\)/g, '')
+    .trim();
+
+const nonCharacterFlag = (name) =>
+  NON_CHARACTER_NAMES.find(
+    (nc) => name.toLowerCase().includes(nc)
+  ) || !name.length;
+
+const castGet = (credits) =>
+
+  credits.cast.reduce(
+    (memo, member) => {
+
+      const characterName = characterNameCleanedGet(
+        member.character || ''
+      );
+
+      return nonCharacterFlag(characterName)
+        ? memo
+        : [
+          ...memo,
+          {
+            actor: {
+              text: member.name,
+              ud: null,
+              gender: genderMapGet(member.gender)
+            },
+            characterName,
+            characterNameFull: member.character || '',
+            role: `${member.name} as ${characterName}`
+          }
+        ];
+    },
+    []
+  );
+
+const overviewPlotGet = (overview, plotLimit) => {
+
+  const sentences = sentencesTokenizedGet(overview);
+
+  const _sentences = sentencesGet(
+    sentences.slice(0, plotLimit),
+    75
+  );
+
+  return _sentences.map(
+    (text, sentenceIndex) => ({
+      text,
+      sentenceIndex
+    })
+  );
 };
 
-const parseQueryGet = (title) => {
-  return `https://en.wikipedia.org/w/api.php?action=parse&format=json&page=${titleEncodedGet(title)}&prop=text&redirects=1&origin=*`;
-};
+export default async (title, plotLimit) => {
 
-const moviePageSectionTextsGetFn = (html, anchorNames) => {
-  if (!html) return null;
-  
-  anchorNames = Array.isArray(anchorNames) ? anchorNames : [anchorNames];
-
-  // Strategy 1: Look for the specific mw-headline ID (standard)
-  for (const anchorName of anchorNames) {
-    const regex = new RegExp(`<span[^>]*class="mw-headline"[^>]*id="${anchorName}"[^>]*>.*?</span>(.*?)(?:<h[2-6]|$)`, 'is');
-    const match = html.match(regex);
-    if (match && match[1]) return match[1].trim();
-  }
-
-  // Strategy 2: Look for the section title within any header tag (fallback)
-  for (const anchorName of anchorNames) {
-    const cleanName = anchorName.replace(/_/g, ' ');
-    const regex = new RegExp(`<h[2-6][^>]*>.*?${cleanName}.*?</h[2-6]>(.*?)(?:<h[2-6]|$)`, 'is');
-    const match = html.match(regex);
-    if (match && match[1]) return match[1].trim();
-  }
-
-  return null;
-};
-
-const sectionTextCleanedGet = (sectionText) => {
-  if (!sectionText) return '';
-  sectionText = sectionText.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ');
-  sectionText = latinize(sectionText);
-  return sectionText.replace(/((?:[A-Z][a-z]*.?\s?)*)"([A-Za-z.]+)"((?:\s?[A-Z][a-z]*.?)*)/g, '$1$2$3');
-};
-
-const processFn = (title, poster, plotText, castText, plotLimit, processFlag) => {
-  if (!plotText || !castText) {
-    console.log(`Scraper warning: Missing section for ${title}. Plot: ${!!plotText}, Cast: ${!!castText}`);
-    return null;
-  }
-  if (!processFlag) return { plotText, castText };
-
-  let plot = movieDataBasicPlotGet(plotText, plotLimit);
-  const cast = movieDataBasicCastGet(castText);
-
-  return { title, poster, cast, plot, castText, plotText };
-};
-
-export default async (title, plotLimit, processFlag = true) => {
   console.log(`movieDataBasicGet start: ${title}`);
-  
+
   try {
-    const summaryUrl = summaryQueryGet(title);
-    const parseUrl = parseQueryGet(title);
-    
-    console.log(`Fetching summary from: ${summaryUrl}`);
-    console.log(`Fetching parse from: ${parseUrl}`);
 
-    // Fetch both the summary (for the poster) and the full parse (for plot/cast)
-    const [summaryJson, parseJson] = await Promise.all([
-      mediawikiFetch(summaryUrl),
-      mediawikiFetch(parseUrl)
-    ]);
+    const searchJson = await tmdbFetch(
+      `/search/movie?query=${encodeURIComponent(title)}&language=en-US&page=1`
+    );
 
-    console.log(`Fetch complete. Summary success: ${!!summaryJson}, Parse success: ${!!parseJson}`);
+    const movieResult = searchJson?.results?.[0];
 
-    if (!parseJson || !parseJson.parse) {
-      console.log("Wikipedia Parse API failed or returned no data.");
-      return null;
-    }
+    return (!movieResult)
+      ? (() => {
 
-    const poster = summaryJson?.originalimage?.source || "https://via.placeholder.com/320x480?text=No+Poster";
-    const html = parseJson?.parse?.text?.['*'];
-    
-    const castText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, ['Cast', 'Voice_cast']));
-    const plotText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, ['Plot', 'Synopsis', 'Premise']));
+        console.log(`TMDB search returned no results for: ${title}`);
 
-    if (castText && plotText) {
-      console.log(`Successfully scraped sections for ${title}. Cast length: ${castText.length}, Plot length: ${plotText.length}`);
-    }
+        return null;
+      })()
+      : await (async () => {
 
-    return processFn(title, poster, plotText, castText, plotLimit, processFlag);
+        const detailJson = await tmdbFetch(
+          `/movie/${movieResult.id}?append_to_response=credits&language=en-US`
+        );
+
+        return (!detailJson?.credits)
+          ? (() => {
+
+            console.log(`TMDB detail fetch failed for: ${title}`);
+
+            return null;
+          })()
+          : await (async () => {
+
+            const _title = detailJson.title;
+
+            const poster = detailJson.poster_path
+              ? `${TMDB_IMAGE_BASE}${detailJson.poster_path}`
+              : PLACEHOLDER_POSTER;
+
+            const cast = castGet(detailJson.credits);
+
+            const plot = await wikipediaPlotGet(
+              _title,
+              plotLimit
+            );
+
+            const _plot = (plot?.length)
+              ? plot
+              : (detailJson.overview)
+                ? overviewPlotGet(detailJson.overview, plotLimit)
+                : null;
+
+            return (!_plot || !cast.length)
+              ? (() => {
+
+                console.log(
+                  `movieDataBasicGet incomplete for ${_title}. Plot: ${!!_plot}, Cast: ${cast.length}`
+                );
+
+                return null;
+              })()
+              : (() => {
+
+                console.log(
+                  `movieDataBasicGet success for ${_title}. Cast: ${cast.length}, Plot sentences: ${_plot.length}`
+                );
+
+                return {
+                  title: _title,
+                  poster,
+                  cast,
+                  plot: _plot
+                };
+              })();
+          })();
+      })();
   } catch (error) {
+
     console.log(`movieDataBasicGet error: ${error.message}`);
+
     return null;
   }
 };

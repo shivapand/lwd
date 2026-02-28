@@ -1,244 +1,93 @@
 'use strict';
 
-import puppeteer from 'puppeteer';
+import hfInferenceFetch from './hfInferenceFetch';
 
-import plotNNPsGet from './plotNNPsGet';
-import NNPCrossMatchesGet from './NNPCrossMatchesGet';
+const HF_MODEL = 'facebook/bart-large-mnli';
 
-const _NNPsGet = (
-  characters
-) => {
+const VILLAIN_THRESHOLD = 0.4;
 
-  return characters.map(
-    (
-      {
-        text
-      },
-      index
-    ) => {
+const CANDIDATE_LABELS = [
+  'villain',
+  'hero',
+  'supporting character'
+];
 
-      return {
-        text,
-        index
-      };
-    }
-  );
-};
+const classifyCharacter = async (characterName, title) =>
 
-const _antagonistGetFn = (
-  characters,
-  text
-) => {
-
-  if (
-    !text
-  ) {
-
-    return (
-      null
-    );
-  }
-
-  const NNP = plotNNPsGet(
-    [
-      {
-        text
+  hfInferenceFetch(
+    HF_MODEL,
+    {
+      inputs: `${characterName} is a character in ${title}`,
+      parameters: {
+        candidate_labels: CANDIDATE_LABELS
       }
-    ]
-  )?.[
-    0
-  ];
-
-  const _NNPs = _NNPsGet(
-    characters
-  );
-
-  let matches = (
-    NNP
-  ) ?
-    NNPCrossMatchesGet(
-      NNP,
-      _NNPs
-    ) :
-    null;
-
-  const character = (
-    matches
-  ) ?
-    characters?.[
-      _NNPs?.[
-        matches?.[
-          0
-        ]?._NNPIndex
-      ]?.index
-    ] :
-    null;
-
-  return (
-    character &&
-    (
-      character.actor.gender !== 
-      'woman'
-    ) &&
-    character.castIndex
-  ) ?
-    character :
-    null;
-};
-
-const antagonistGetFn = async (
-  characters,
-  title
-) => {
-
-  const browser = await puppeteer.launch(
-    {
-      args: [
-        '--no-sandbox'
-      ]
     }
   );
 
-  const page = await browser.newPage();
+const villainGet = async (characters, title) => {
 
-  await page.goto(
-    'https://google.com',
-    {
-      waitUntil: 'networkidle0'
-    }
+  const uniqueCharacters = characters.reduce(
+    (memo, character) =>
+      memo.find((m) => m.text === character.text)
+        ? memo
+        : [...memo, character],
+    []
   );
 
-  const searchString =`
-    ${
-      title
-    } antagonist
-  `
-    .trim();
-
-  await page.type(
-    'input[name=q]',
-    searchString,
-    {
-      delay: 100
-    }
-  );
-
-  await page.evaluate(
-    () => {
-
-      document.querySelector(
-        'input[type="submit"]'
-      )
-        .click();
-    }
-  );
-
-  const selector = '[aria-level="3"][role="heading"]';
-
-  await page.waitForSelector(
-    selector
-  );
-
-  const text = (
-    await page.evaluate(
-      (
-        selector
-      ) => {
-
-        const el = document.querySelector(
-          selector
-        );
-
-        return (
-          el.innerText
-        );
-      },
-      selector
+  const classificationCollection = await Promise.all(
+    uniqueCharacters.map(
+      (character) =>
+        classifyCharacter(character.characterNameFull || character.text, title)
+          .then(
+            (result) => ({
+              text: character.text,
+              villainScore: (Array.isArray(result))
+                ? (result.find((r) => r.label === 'villain')?.score || 0)
+                : 0
+            })
+          )
+          .catch(() => ({ text: character.text, villainScore: 0 }))
     )
   );
 
-  await browser.close();
+  const villainMatch = classificationCollection
+    .filter(({ villainScore }) => villainScore > VILLAIN_THRESHOLD)
+    .sort((a, b) => b.villainScore - a.villainScore)[0];
 
-  const antagonist = _antagonistGetFn(
-    characters,
-    text
-  );
-
-  return (
-    antagonist
-  );
+  return villainMatch
+    ? characters.find(
+      (character) => character.text === villainMatch.text
+    )
+    : null;
 };
 
-const antagonistGet = (
-  characters,
-  title
-) => {
+const charactersAssignedGet = (characters, antagonist) =>
 
-  return antagonistGetFn(
-    characters,
-    title
-  )
-    .catch(
-      () => {
-
-        return antagonistGet(
-          characters,
-          title
-        );
-      }
-    );
-};
-
-const charactersGet = (
-  characters,
-  antagonist
-) => {
-
-  return characters.reduce(
-    (
-      memo,
-      character
-    ) => {
-
-      if (
-        character.text ===
-        antagonist?.text
-      ) {
-
-        return [
-          ...memo,
-          {
-            ...character,
-            role: 'villain'
-          }
-        ];
-      }
-
-      return [
-        ...memo,
-        character
-      ];
-    },
+  characters.reduce(
+    (memo, character) => [
+      ...memo,
+      (character.text === antagonist?.text)
+        ? { ...character, role: 'villain' }
+        : character
+    ],
     []
   );
-};
 
 export default async (
   _characters,
   title
 ) => {
 
-  const antagonist = await antagonistGet(
+  const antagonist = await villainGet(
     _characters,
     title
-  );
+  )
+    .catch(() => null);
 
-  const characters = charactersGet(
+  const characters = charactersAssignedGet(
     _characters,
     antagonist
   );
 
-  return (
-    characters
-  );
+  return characters;
 };

@@ -11,7 +11,9 @@
     "MONGO_REMOTE_URI": "mongodb+srv://pyratin:didi1234@cluster0.9h098.mongodb.net/lwd",
     "GENRE": "public-domain",
     "HERO": "YOU!",
-    "FB_APP_ID": "248823225550982"
+    "FB_APP_ID": "248823225550982",
+    "TMDB_READ_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0N2I5OGQzMWM1ZWVjZDgzNGM0ZDE3NDliNzM5ZTFjOCIsIm5iZiI6MTY1MzIxOTUxOC4yNjU5OTk4LCJzdWIiOiI2MjhhMjBiZTdkNWRiNTFiMjkxODFkMGYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.O_CqmSuryhAxb0xN8k0Rs7qL2a9FhJgDs8hRMbk8kck",
+    "HF_ACCESS_TOKEN": ""
   },
   "scripts": {
     "dev:server": "env NODE_ENV=development node_modules/nodemon/bin/nodemon.js -L --exec node_modules/@babel/node/bin/babel-node.js -w js/server -e js js/server",

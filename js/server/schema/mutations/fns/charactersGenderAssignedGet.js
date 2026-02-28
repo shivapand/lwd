@@ -1,105 +1,28 @@
 'use strict';
 
-import actorsGenderAssignedGet 
-  from './actorsGenderAssignedGet';
-
-const actorsFlatlistGet = (
-  characters
+export default async (
+  _characters
 ) => {
 
-  return characters.reduce(
-    (
-      memo,
-      character
-    ) => {
+  const characters = _characters.reduce(
+    (memo, character) => {
 
-      const exists = memo.find(
-        (
-          _memo
-        ) => {
-
-          return (
-            _memo.text ===
-            character.actor.text
-          );
-        }
-      );
-
-      if (
-        !exists
-      ) {
-
-        return [
-          ...memo,
-          character.actor
-        ];
-      }
-
-      return (
-        memo
-      );
-    },
-    []
-  );
-};
-
-const charactersActorGenderAssignedGet = (
-  characters,
-  actors
-) => {
-
-  return characters.reduce(
-    (
-      memo,
-      character
-    ) => {
-
-      const actor = actors.find(
-        (
-          actor
-        ) => {
-
-          return (
-            actor.text ===
-            character.actor.text
-          );
-        }
-      );
+      const gender = character.actor?.gender || 'unknown';
 
       return [
         ...memo,
         {
           ...character,
-          role: actor.gender,
+          role: gender,
           actor: {
             ...character.actor,
-            gender: actor.gender
+            gender
           }
         }
       ];
     },
     []
   );
-};
 
-export default async (
-  _characters
-) => {
-
-  let actors = actorsFlatlistGet(
-    _characters
-  );
-
-  actors = await actorsGenderAssignedGet(
-    actors
-  );
-
-  let characters = charactersActorGenderAssignedGet(
-    _characters,
-    actors
-  );
-
-  return (
-    characters
-  );
+  return characters;
 };

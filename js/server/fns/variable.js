@@ -109,6 +109,22 @@ const fbAppIdGet = () => {
   );
 };
 
+const tmdbReadAccessTokenGet = () => {
+
+  return (
+    process.env.TMDB_READ_ACCESS_TOKEN ||
+    process.env.npm_package_config_TMDB_READ_ACCESS_TOKEN
+  );
+};
+
+const hfAccessTokenGet = () => {
+
+  return (
+    process.env.HF_ACCESS_TOKEN ||
+    process.env.npm_package_config_HF_ACCESS_TOKEN
+  );
+};
+
 export {
   titleGet,
   portGet,
@@ -120,5 +136,7 @@ export {
   mongoUriGet,
   genreGet,
   heroGet,
-  fbAppIdGet
+  fbAppIdGet,
+  tmdbReadAccessTokenGet,
+  hfAccessTokenGet
 };

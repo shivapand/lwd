@@ -1,67 +1,42 @@
 'use strict';
 
-import plotNNPsGet from './plotNNPsGet';
-import NNPsCrossMatchesGet from './NNPsCrossMatchesGet';
+const characterNameVariantsGet = (character) => {
 
-const _NNPsGet = (
-  characters
-) => {
+  const fullName = character.text;
 
-  return characters.map(
-    (
-      {
-        text
-      },
-      index
-    ) => {
+  const firstName = fullName.split(/\s+/)[0];
 
-      return {
-        text,
-        index
-      }; 
-    }
-  );
+  const variants = (firstName.length > 1 && firstName !== fullName)
+    ? [fullName, firstName]
+    : [fullName];
+
+  return variants;
 };
 
-const cardGet = (
-  sentence,
-  characters
-) => {
+const sentenceCharactersGet = (sentence, characters) =>
 
-  const NNPs = plotNNPsGet(
-    [
-      sentence
-    ]
+  characters.reduce(
+    (memo, character) => {
+
+      const nameVariants = characterNameVariantsGet(character);
+
+      const matchFlag = !!nameVariants.find(
+        (name) =>
+          sentence.text.toLowerCase().includes(name.toLowerCase())
+      );
+
+      return (!matchFlag)
+        ? memo
+        : [
+          ...memo,
+          {
+            ...character,
+            distance: 0
+          }
+        ];
+    },
+    []
   );
-
-  const _NNPs = _NNPsGet(
-    characters
-  );
-
-  const matches = NNPsCrossMatchesGet(
-    NNPs,
-    _NNPs,
-    true
-  );
-
-  return matches.map(
-    (
-      match
-    ) => {
-
-      const NNP = NNPs[
-        match.NNPIndex
-      ];
-
-      return {
-        ...characters[
-          match._NNPIndex
-        ],
-        distance: NNP.distance
-      };
-    }
-  );
-};
 
 export default (
   plot,
@@ -69,30 +44,23 @@ export default (
 ) => {
 
   const cards = plot.reduce(
-    (
-      memo,
-      sentence
-    ) => {
+    (memo, sentence) => {
 
-      const characters = cardGet(
+      const characters = sentenceCharactersGet(
         sentence,
         _characters
       );
 
-      const card = {
-        ...sentence,
-        characters
-      };
-
       return [
         ...memo,
-        card
+        {
+          ...sentence,
+          characters
+        }
       ];
     },
     []
   );
 
-  return (
-    cards
-  );
+  return cards;
 };
