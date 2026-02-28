@@ -23,12 +23,15 @@ RUN npm install canvas@2.11.2
 # 6. Copy the rest of your application code
 COPY . .
 
-# 7. Build and prepare for runtime
+# 7. Enable legacy OpenSSL provider for Webpack 4 compatibility on Node 20
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
+# 8. Build and prepare for runtime
 RUN npm run build
 
-# 8. Hugging Face specific port configuration
+# 9. Hugging Face specific port configuration
 EXPOSE 7860
 ENV PORT=7860
 
-# 9. Start the application
+# 10. Start the application
 CMD ["npm", "start"]
