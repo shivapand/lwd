@@ -124,12 +124,15 @@ export default (
   }
 
   const $ = cheerio.load(
-    plotText
+    `<div>${plotText}</div>`
   );
 
   const plotEl = $(
-    'span.mw-reflink-text, sup'
+    'div'
   )
+    .find(
+      'span.mw-reflink-text, sup'
+    )
     .remove()
     .end();
 
@@ -143,9 +146,9 @@ export default (
     !paragraphs.length
   ) {
 
-    return (
-      null
-    );
+    paragraphs = [
+      plotEl
+    ];
   }
 
   paragraphs = paragraphs.reduce(

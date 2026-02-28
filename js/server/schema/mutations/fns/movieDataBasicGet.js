@@ -24,7 +24,7 @@ const moviePageSectionTextsGetFn = (html, anchorNames) => {
   for (const anchorName of anchorNames) {
     const regex = new RegExp(`<span[^>]*class="mw-headline"[^>]*id="${anchorName}"[^>]*>.*?</span>(.*?)(?:<h[2-6]|$)`, 'is');
     const match = html.match(regex);
-    if (match && match[1]) return match[1].replace(/<[^>]*>?/gm, '').trim();
+    if (match && match[1]) return match[1].trim();
   }
 
   // Strategy 2: Look for the section title within any header tag (fallback)
@@ -32,7 +32,7 @@ const moviePageSectionTextsGetFn = (html, anchorNames) => {
     const cleanName = anchorName.replace(/_/g, ' ');
     const regex = new RegExp(`<h[2-6][^>]*>.*?${cleanName}.*?</h[2-6]>(.*?)(?:<h[2-6]|$)`, 'is');
     const match = html.match(regex);
-    if (match && match[1]) return match[1].replace(/<[^>]*>?/gm, '').trim();
+    if (match && match[1]) return match[1].trim();
   }
 
   return null;
