@@ -24,7 +24,7 @@ COPY . .
 ENV NODE_OPTIONS=--openssl-legacy-provider
 
 # 7. Build the application
-RUN npm run build
+RUN npm run build:server && npm run build:client
 
 # 8. Hugging Face port configuration
 EXPOSE 7860
