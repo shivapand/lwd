@@ -15,7 +15,7 @@ const SplashCharacters = (
   const charactersRender = () => {
 
     return props.splash.characters
-      .map(
+      ?.map(
         (
           character,
           index

@@ -94,7 +94,7 @@ const DeckNode = (
   const cardsRender = () => {
 
     return props.deck.cards
-      .map(
+      ?.map(
         (
           card,
           index

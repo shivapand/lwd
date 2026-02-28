@@ -387,7 +387,7 @@ const MovieSearch = (
           ...menuProps
         }
         options = {
-          results.map(
+          results?.map(
             (
               {
                 title
