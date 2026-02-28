@@ -10,6 +10,7 @@ RUN if [ -f /etc/ImageMagick-7/policy.xml ]; then sed -i 's/rights="none" patter
 
 # 3. Set up the working directory
 WORKDIR /app
+RUN mkdir -p media/output
 
 # 4. Copy package files and install dependencies
 # We use --legacy-peer-deps to handle older package versions
