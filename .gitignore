@@ -1,0 +1,8 @@
+node_modules
+media/output
+dist
+temp
+current.png
+media/fonts/
+media/*.jpeg
+utils/process/source/weights/

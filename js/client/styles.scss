@@ -1,0 +1,21 @@
+
+@import '~bootstrap/scss/bootstrap';
+
+$fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
+
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+@import '~@fortawesome/fontawesome-free/scss/regular';
+@import '~@fortawesome/fontawesome-free/scss/solid';
+@import '~@fortawesome/fontawesome-free/scss/brands';
+
+@import '~react-bootstrap-typeahead/css/Typeahead';
+
+@font-face {
+  font-family: 'Muli';
+  src: url('~fonts/Muli-Italic-VariableFont_wght.ttf');
+}
+
+body {
+  font-size: 16px;
+  @extend .bg-dark;
+}
