@@ -17,8 +17,8 @@ const parseQueryGet = (title) => {
 
 const moviePageSectionTextsGetFn = (html, anchorName) => {
   if (!html) return null;
-  // Regex to find the content between the headline span and the next header
-  const regex = new RegExp(`<span[^>]*class="mw-headline"[^>]*id="${anchorName}"[^>]*>.*?</span>(.*?)<h[2-6]>`, 'is');
+  // Regex to find the content between the headline span and the next header OR end of string
+  const regex = new RegExp(`<span[^>]*class="mw-headline"[^>]*id="${anchorName}"[^>]*>.*?</span>(.*?)(?:<h[2-6]|$)`, 'is');
   const match = html.match(regex);
   
   if (match && match[1]) {
@@ -48,17 +48,25 @@ const processFn = (title, poster, plotText, castText, plotLimit, processFlag) =>
 };
 
 export default async (title, plotLimit, processFlag = true) => {
-  console.log(`movieDataBasicGet: ${title}`);
+  console.log(`movieDataBasicGet start: ${title}`);
   
   try {
+    const summaryUrl = summaryQueryGet(title);
+    const parseUrl = parseQueryGet(title);
+    
+    console.log(`Fetching summary from: ${summaryUrl}`);
+    console.log(`Fetching parse from: ${parseUrl}`);
+
     // Fetch both the summary (for the poster) and the full parse (for plot/cast)
     const [summaryJson, parseJson] = await Promise.all([
-      mediawikiFetch(summaryQueryGet(title)),
-      mediawikiFetch(parseQueryGet(title))
+      mediawikiFetch(summaryUrl),
+      mediawikiFetch(parseUrl)
     ]);
 
+    console.log(`Fetch complete. Summary success: ${!!summaryJson}, Parse success: ${!!parseJson}`);
+
     if (!parseJson || !parseJson.parse) {
-      console.log("Wikipedia Parse API failed, aborting.");
+      console.log("Wikipedia Parse API failed or returned no data.");
       return null;
     }
 

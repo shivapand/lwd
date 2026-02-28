@@ -250,23 +250,9 @@ const movieCreate = async (
   req
 ) => {
 
-  const movieFilenameString = `
-    ${
-      movie.title
-    }_${
-      movie.genre
-    }_${
-      movie.hero
-    }
-  `
-    .trim();
+  const movieFilenameString = `${movie.title}_${movie.genre}_${movie.hero}`.replace(/[\s\n\r]+/g, '_');
 
-  const path = `
-    /output/${
-      movieFilenameString
-    }.gif
-  `
-    .trim();
+  const path = `/output/${movieFilenameString}.gif`;
 
   const url = `
     ${
@@ -454,6 +440,15 @@ const outputGet = async (
     db
   );
 
+  if (
+    !deck
+  ) {
+
+    return (
+      null
+    );
+  }
+
   switch (
     true
   ) {
@@ -549,6 +544,15 @@ export default async (
     plotLimit,
     db
   );
+
+  if (
+    !output
+  ) {
+
+    return (
+      null
+    );
+  }
 
   output = await outputCreatedGet(
     {

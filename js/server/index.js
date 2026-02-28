@@ -36,11 +36,17 @@ import schemaUpdate from './fns/schemaUpdate';
 
     const port = portGet();
 
-    return express()
+    const app = express();
 
-      .set(
-        'view engine',
-        'ejs'
+    app.set('trust proxy', true);
+    app.set('views', path.join(process.cwd(), 'views'));
+    app.set('view engine', 'ejs');
+
+    return app
+
+      .get(
+        '/favicon.ico',
+        (req, res) => res.status(204).end()
       )
       
       .get(
@@ -85,34 +91,44 @@ import schemaUpdate from './fns/schemaUpdate';
           res
         ) => {
 
-          return expressGraphql(
-            {
-              schema,
-              pretty: true,
-              context: {
-                db,
-                req
+          try {
+            return expressGraphql(
+              {
+                schema,
+                pretty: true,
+                context: {
+                  db,
+                  req
+                }
               }
-            }
-          )(
-            req,
-            res
-          );
+            )(
+              req,
+              res
+            );
+          } catch (error) {
+            console.error('GraphQL Error:', error);
+            res.status(500).send(error.message);
+          }
         }
       )
 
       .get(
         '/deck/:deckTitle',
-        (
+        async (
           req,
           res
         ) => {
 
-          return deckTitleRouteHandle(
-            db,
-            req,
-            res
-          );
+          try {
+            await deckTitleRouteHandle(
+              db,
+              req,
+              res
+            );
+          } catch (error) {
+            console.error('Route Error:', error);
+            res.status(500).send(`Route Error: ${error.message}`);
+          }
         }
       )
 
@@ -123,33 +139,43 @@ import schemaUpdate from './fns/schemaUpdate';
           res
         ) => {
 
-          return res.render(
-            'index',
-            {
-              fbAppId: fbAppIdGet(),
-              title: titleGet(),
-              description: 'just messing ... :D',
-              type: 'article',
-              url: hostUrlGet(
-                req
-              ),
-              image: {
-                url: `
-                  ${
-                    hostUrlGet(
-                      req
-                    )
-                  }/root.jpeg
-                `
-                  .trim(),
-                type: 'image/jpeg',
-                width: outputResGet(),
-                height: outputResGet()
+          try {
+            return res.render(
+              'index',
+              {
+                fbAppId: fbAppIdGet(),
+                title: titleGet(),
+                description: 'just messing ... :D',
+                type: 'article',
+                url: hostUrlGet(
+                  req
+                ),
+                image: {
+                  url: `
+                    ${
+                      hostUrlGet(
+                        req
+                      )
+                    }/root.jpeg
+                  `
+                    .trim(),
+                  type: 'image/jpeg',
+                  width: outputResGet(),
+                  height: outputResGet()
+                }
               }
-            }
-          );
+            );
+          } catch (error) {
+            console.error('Catch-all Error:', error);
+            res.status(500).send(`Catch-all Error: ${error.message}`);
+          }
         }
       )
+
+      .use((err, req, res, next) => {
+        console.error('Unhandled Error:', err);
+        res.status(500).send(`Unhandled Error: ${err.message}`);
+      })
 
       .listen(
         port,
