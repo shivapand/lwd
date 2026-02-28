@@ -53,15 +53,7 @@ const SplashCharacter = (
               right: 0,
               bottom: 0,
               fontFamily: 'Muli',
-              fontSize: `
-                ${
-                  parseInt(
-                    props.textFontSize
-                  ) /
-                  1.5
-                }rem
-              `
-                .trim()
+              fontSize: props.textFontSize
             }
           )
         }

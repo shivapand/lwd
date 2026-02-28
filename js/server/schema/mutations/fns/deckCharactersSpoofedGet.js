@@ -365,13 +365,75 @@ const characterGroupsGet = (
     );
 };
 
+const charactersHeroineEnsuredGet = (
+  characters
+) => {
+
+  const heroineExists = characters.find(
+    (character) => {
+
+      return (
+        character.role ===
+        'heroine'
+      );
+    }
+  );
+
+  return (heroineExists)
+    ? characters
+    : (() => {
+
+      const match = characters.find(
+        (character) => {
+
+          return (
+            (
+              character.actor?.gender ===
+              'woman'
+            ) &&
+            (
+              character.castIndex >
+              0
+            )
+          );
+        }
+      );
+
+      return (!match)
+        ? characters
+        : characters.reduce(
+          (memo, character) => {
+
+            return [
+              ...memo,
+              (
+                character.starringIndex ===
+                match.starringIndex
+              )
+                ? {
+                  ...character,
+                  role: 'heroine',
+                  roleGroupIndex: 0
+                }
+                : character
+            ];
+          },
+          []
+        );
+    })();
+};
+
 export default (
   _characters,
   spoofInput
 ) => {
 
-  let characterGroups = characterGroupsGet(
+  const __characters = charactersHeroineEnsuredGet(
     _characters
+  );
+
+  let characterGroups = characterGroupsGet(
+    __characters
   );
 
   const spoofNames = spoofNamesGetFn();

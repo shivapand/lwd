@@ -106,7 +106,7 @@ const cardsFlatlistGifyUrlAssignedGetFn = (
       ) => {
 
         const gifyUrl = json.data.images?.[
-          'downsized_still'
+          'original_still'
         ]
           .url;
 

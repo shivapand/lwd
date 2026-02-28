@@ -138,12 +138,12 @@ const charactersMetaHeroineAssignedGet = (
 
       return (
         (
-          character.castIndex ===
-          1
-        ) &&
-        (
           character.actor.gender ===
           'woman'
+        ) &&
+        (
+          character.castIndex >
+          0
         )
       );
     }

@@ -284,7 +284,11 @@ const MovieSearch = (
               .toString(),
             text: title,
             source: 'user',
-            createFlag: true
+            createFlag: true,
+            genre: props.match.location.query.genre,
+            spoofInput: {
+              hero: props.match.location.query.hero
+            }
           }
         },
         props.relay.environment,

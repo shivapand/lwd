@@ -15,6 +15,8 @@ import deckActorImageIdsAssignedGet
   from './deckActorImageIdsAssignedGet';
 import deckRenderDetailsAssignedGet
   from './deckRenderDetailsAssignedGet';
+import cardsGifyUrlAssignedGet
+  from './cardsGifyUrlAssignedGet';
 
 const deckPreBuiltGet = async (
   input,
@@ -131,6 +133,24 @@ const deckPostProcessedGet = async (
         );
       }
     );
+
+  const cardsWithGify = await cardsGifyUrlAssignedGet(
+    deck.cards,
+    deck.splash.title
+  )
+    .catch(
+      () => {
+
+        return (
+          deck.cards
+        );
+      }
+    );
+
+  deck = {
+    ...deck,
+    cards: cardsWithGify
+  };
 
   deck = deckRenderDetailsAssignedGet(
     deck

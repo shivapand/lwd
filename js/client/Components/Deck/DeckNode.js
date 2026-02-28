@@ -23,8 +23,8 @@ const DeckNode = (
   const textFontSize = '1.1rem';
 
   const splashCharacterElementSize = (
-    process.env.OUTPUT_RES / 
-    4
+    process.env.OUTPUT_RES /
+    2.5
   );
 
   const refreshRender = () => {
