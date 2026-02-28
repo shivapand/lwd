@@ -1,28 +1,145 @@
 'use strict';
 
-import plotNNPsGet from './plotNNPsGet';
-import NNPsCrossMatchesGet from './NNPsCrossMatchesGet';
+const characterNameVariantsGet = (
+  character
+) => {
 
-const _NNPsGet = (
+  const fullName = character.characterNameFull ||
+    character._text;
+
+  const parts = fullName.split(
+    /\s*\/\s*/
+  );
+
+  return parts.reduce(
+    (
+      memo,
+      part
+    ) => {
+
+      const trimmed = part.replace(
+        /\(.*?\)/g,
+        ''
+      )
+        .trim();
+
+      const firstName = trimmed.split(
+        /\s+/
+      )[
+        0
+      ];
+
+      return [
+        ...memo,
+        ...(
+          (trimmed.length > 1)
+            ? [trimmed]
+            : []
+        ),
+        ...(
+          (
+            firstName.length > 1 &&
+            firstName !== trimmed
+          )
+            ? [firstName]
+            : []
+        )
+      ];
+    },
+    []
+  )
+    .reduce(
+      (
+        memo,
+        name
+      ) => {
+
+        return (
+          memo.find(
+            (m) =>
+              m.toLowerCase() === name.toLowerCase()
+          )
+        )
+          ? memo
+          : [
+            ...memo,
+            name
+          ];
+      },
+      []
+    );
+};
+
+const cardMatchesGet = (
+  _card,
   characters
 ) => {
 
-  return characters.map(
+  return characters.reduce(
     (
-      {
-        text: _text,
-        _text: text
-      },
-      index
+      memo,
+      character
     ) => {
 
-      return {
-        text,
-        _text,
-        index
-      };
-    }
-  );
+      const nameVariants = characterNameVariantsGet(
+        character
+      );
+
+      const baseText = _card._text || _card.text;
+
+      const matchedVariant = nameVariants.find(
+        (name) =>
+          baseText.toLowerCase().includes(
+            name.toLowerCase()
+          )
+      );
+
+      return (
+        !matchedVariant
+      )
+        ? memo
+        : [
+          ...memo,
+          {
+            character,
+            originalName: matchedVariant,
+            spoofName: character.text,
+            distance: baseText.toLowerCase()
+              .indexOf(
+                matchedVariant.toLowerCase()
+              )
+          }
+        ];
+    },
+    []
+  )
+    .sort(
+      (
+        a, b
+      ) => {
+
+        switch (true) {
+
+          case (
+            a.distance >
+            b.distance
+          ) :
+
+            return 1;
+
+          case (
+            b.distance >
+            a.distance
+          ) :
+
+            return -1;
+
+          default:
+
+            return 0;
+        }
+      }
+    );
 };
 
 const cardsSpoofedGetFn = (
@@ -30,20 +147,11 @@ const cardsSpoofedGetFn = (
   characters
 ) => {
 
-  const NNPs = plotNNPsGet(
-    [
-      _card
-    ]
-  );
+  const baseText = _card._text || _card.text;
 
-  const _NNPs = _NNPsGet(
+  const matches = cardMatchesGet(
+    _card,
     characters
-  );
-
-  const matches = NNPsCrossMatchesGet(
-    NNPs,
-    _NNPs,
-    true
   );
 
   const card = matches.reduce(
@@ -52,47 +160,29 @@ const cardsSpoofedGetFn = (
       match
     ) => {
 
-      const NNP = NNPs[
-        match.NNPIndex
-      ];
-
-      const _distance = NNP.distance;
-
       const distanceOffset = (
         memo.text
-          .length - 
-        _card.text
+          .length -
+        baseText
           .length
       );
 
-      const distance = _distance + distanceOffset;
-
-      const _NNP = _NNPs[
-        match._NNPIndex
-      ];
-      
-      const name = _NNP.text;
-
-      const spoofName = _NNP._text;
+      const distance = match.distance + distanceOffset;
 
       const text = [
-        ...memo.text
+        memo.text
           .slice(
-            0, 
+            0,
             distance
           ),
-        spoofName,
-        ...memo.text
+        match.spoofName,
+        memo.text
           .slice(
             distance +
-            name.length
+            match.originalName.length
           )
       ]
         .join('');
-
-      const character = characters[
-        _NNP.index
-      ];
 
       return {
         ...memo,
@@ -100,7 +190,7 @@ const cardsSpoofedGetFn = (
         characters: [
           ...memo.characters,
           {
-            ...character,
+            ...match.character,
             distance
           }
         ]
@@ -108,7 +198,7 @@ const cardsSpoofedGetFn = (
     },
     {
       ..._card,
-      text: _card.text,
+      text: baseText,
       characters: [],
       character: _card.character,
       dualRoleIndex: _card.dualRoleIndex
@@ -117,7 +207,7 @@ const cardsSpoofedGetFn = (
 
   return {
     ...card,
-    _text: _card.text
+    _text: baseText
   };
 };
 
@@ -164,7 +254,7 @@ const cardsCharacterAssignedGet = (
 
             return (
               character._text ===
-              card.character.text
+              card.character?.text
             );
           }
         );
@@ -173,7 +263,8 @@ const cardsCharacterAssignedGet = (
         ...memo,
         {
           ...card,
-          character
+          character: character ||
+            card.character
         }
       ];
     },
