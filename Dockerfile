@@ -1,36 +1,34 @@
-# Use a modern Node.js version (Bookworm-based)
-FROM node:20
+# Use a stable, modern Node.js version
+FROM node:20-bookworm
 
-# Install system-level dependencies in a single line to be safe
-# We also add build-essential and pkg-config which canvas needs
-RUN apt-get update && apt-get install -y imagemagick libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev ghostscript build-essential pkg-config && rm -rf /var/lib/apt/lists/*
+# 1. Install system-level dependencies in one clean command
+# Added build-essential, python3, and specific libraries for node-canvas
+RUN apt-get update && apt-get install -y imagemagick libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev ghostscript build-essential pkg-config python3 && rm -rf /var/lib/apt/lists/*
 
-# Fix ImageMagick security policy for both v6 and v7 paths
+# 2. Fix ImageMagick security policy
 RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml && sed -i 's/rights="none" pattern="LABEL"/rights="read|write" pattern="LABEL"/' /etc/ImageMagick-6/policy.xml; fi
 RUN if [ -f /etc/ImageMagick-7/policy.xml ]; then sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-7/policy.xml && sed -i 's/rights="none" pattern="LABEL"/rights="read|write" pattern="LABEL"/' /etc/ImageMagick-7/policy.xml; fi
 
-# Set the working directory
+# 3. Set up the working directory
 WORKDIR /app
 
-# Copy package files
+# 4. Copy package files and install dependencies
+# We use --legacy-peer-deps to handle your older package versions
 COPY package*.json ./
-
-# Force install a modern version of canvas BEFORE installing the rest of the old dependencies
-# This prevents the old node-gyp error
-RUN npm install canvas@2.11.2
-
-# Install dependencies (using --legacy-peer-deps for older package compatibility)
 RUN npm install --legacy-peer-deps
 
-# Copy code
+# 5. Force update canvas if the install failed or produced an old version
+RUN npm install canvas@2.11.2
+
+# 6. Copy the rest of your application code
 COPY . .
 
-# Build the app
+# 7. Build and prepare for runtime
 RUN npm run build
 
-# Port setup
+# 8. Hugging Face specific port configuration
 EXPOSE 7860
 ENV PORT=7860
 
-# Start
+# 9. Start the application
 CMD ["npm", "start"]
