@@ -334,20 +334,11 @@ const viewerType = new GraphQLObjectType(
               db,
               undefined
             )
-              .then(
-                (
-                  {
-                    splash: {
-                      title
-                    }
+                .then(
+                  (res) => {
+                    return res?.splash?.title || "The Matrix";
                   }
-                ) => {
-
-                  return (
-                    title
-                  );
-                }
-              );
+                );
           }
         },
         decks: {

@@ -46,16 +46,16 @@ export default {
     new webpack.DefinePlugin(
       {
         'process.env.OUTPUT_RES': JSON.stringify(
-          process.env.npm_package_config_OUTPUT_RES
+          process.env.OUTPUT_RES || 320
         ),
         'process.env.FB_APP_ID': JSON.stringify(
-          process.env.npm_package_config_FB_APP_ID
+          process.env.FB_APP_ID
         ),
         'process.env.GENRE': JSON.stringify(
-          process.env.npm_package_config_GENRE
+          process.env.GENRE || "public-domain"
         ),
         'process.env.HERO': JSON.stringify(
-          process.env.npm_package_config_HERO
+          process.env.HERO || "YOU!"
         )
       }
     )
