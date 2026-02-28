@@ -112,7 +112,7 @@ const splashType = new GraphQLObjectType(
             }
           ) {
 
-            return characters.filter(
+            return characters?.filter(
               (
                 character
               ) => {
@@ -121,7 +121,7 @@ const splashType = new GraphQLObjectType(
                   character.render
                 );
               }
-            );
+            ) || [];
           }
         },
         spoofable: {
