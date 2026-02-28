@@ -1,30 +1,31 @@
-# Use Node.js as the base image
-FROM node:16
+# Use a modern Node.js version (Bookworm-based)
+FROM node:20
 
-# Install system-level dependencies for ImageMagick and Canvas in a single line to avoid line-break errors
+# Install system-level dependencies in a single line to be safe
 RUN apt-get update && apt-get install -y imagemagick libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev ghostscript && rm -rf /var/lib/apt/lists/*
 
-# Fix ImageMagick security policy for Pango and PDF
-RUN sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml && sed -i 's/rights="none" pattern="LABEL"/rights="read|write" pattern="LABEL"/' /etc/ImageMagick-6/policy.xml
+# Fix ImageMagick security policy for both v6 and v7 paths
+RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml && sed -i 's/rights="none" pattern="LABEL"/rights="read|write" pattern="LABEL"/' /etc/ImageMagick-6/policy.xml; fi
+RUN if [ -f /etc/ImageMagick-7/policy.xml ]; then sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-7/policy.xml && sed -i 's/rights="none" pattern="LABEL"/rights="read|write" pattern="LABEL"/' /etc/ImageMagick-7/policy.xml; fi
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies (using --legacy-peer-deps for older package compatibility)
+RUN npm install --legacy-peer-deps
 
-# Copy the rest of your application code
+# Copy code
 COPY . .
 
-# Run the build commands from package.json
+# Build the app
 RUN npm run build
 
-# Expose the port your app runs on
+# Port setup
 EXPOSE 7860
 ENV PORT=7860
 
-# Start the application
+# Start
 CMD ["npm", "start"]
