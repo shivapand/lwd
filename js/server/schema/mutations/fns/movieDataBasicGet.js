@@ -87,6 +87,10 @@ export default async (title, plotLimit, processFlag = true) => {
     const castText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, ['Cast', 'Voice_cast']));
     const plotText = sectionTextCleanedGet(moviePageSectionTextsGetFn(html, ['Plot', 'Synopsis', 'Premise']));
 
+    if (castText && plotText) {
+      console.log(`Successfully scraped sections for ${title}. Cast length: ${castText.length}, Plot length: ${plotText.length}`);
+    }
+
     return processFn(title, poster, plotText, castText, plotLimit, processFlag);
   } catch (error) {
     console.log(`movieDataBasicGet error: ${error.message}`);
