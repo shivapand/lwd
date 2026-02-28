@@ -2,41 +2,36 @@
 
 import nodeFetch from 'node-fetch';
 
-let retryCount = 0;
 const MAX_RETRIES = 3;
 
-const mediawikiFetch = async (query) => {
+const mediawikiFetch = async (query, retryCount = 0) => {
   try {
     const res = await nodeFetch(query, {
       headers: {
         'User-Agent': 'LWD-Demo-Bot (pyratin@gmail.com)'
-      }
+      },
+      timeout: 10000
     });
 
     if (res.status === 200) {
-      retryCount = 0; // Reset count on success
       return await res.json();
     }
 
     console.log(`mediawikiFetch failed with status ${res.status} for query: ${query}`);
     
     if (retryCount < MAX_RETRIES) {
-      retryCount++;
-      console.log(`Retrying (${retryCount}/${MAX_RETRIES})...`);
+      console.log(`Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
       await new Promise(resolve => setTimeout(resolve, 2000));
-      return mediawikiFetch(query);
+      return mediawikiFetch(query, retryCount + 1);
     }
 
-    retryCount = 0;
     return null;
   } catch (error) {
-    console.log(`mediawikiFetch exception: ${error.message}`);
+    console.log(`mediawikiFetch exception: ${error.message} for query: ${query}`);
     if (retryCount < MAX_RETRIES) {
-      retryCount++;
       await new Promise(resolve => setTimeout(resolve, 2000));
-      return mediawikiFetch(query);
+      return mediawikiFetch(query, retryCount + 1);
     }
-    retryCount = 0;
     return null;
   }
 };
