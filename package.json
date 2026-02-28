@@ -43,7 +43,7 @@
     "babel-plugin-relay": "^10.0.1",
     "babel-plugin-root-import": "^6.5.0",
     "bootstrap": "^4.5.2",
-    "canvas": "^2.6.1",
+    "canvas": "^2.11.2",
     "copy-to-clipboard": "^3.3.1",
     "css-loader": "^4.3.0",
     "csvtojson": "^2.0.10",
