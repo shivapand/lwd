@@ -21,7 +21,10 @@ export type MovieSearchMutationResponse = {|
       +id: ?string
     |},
     +results: ?$ReadOnlyArray<?{|
-      +title: ?string
+      +title: ?string,
+      +year: ?string,
+      +poster: ?string,
+      +rating: ?string,
     |}>,
   |}
 |};
@@ -42,6 +45,9 @@ mutation MovieSearchMutation(
     }
     results {
       title
+      year
+      poster
+      rating
     }
   }
 }
@@ -102,6 +108,27 @@ v1 = [
             "kind": "ScalarField",
             "name": "title",
             "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "year",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "poster",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "rating",
+            "storageKey": null
           }
         ],
         "storageKey": null
@@ -128,16 +155,16 @@ return {
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "2c41e306a973d2a006cfcb5aadae936d",
+    "cacheID": "7609281b9eacf36b3cf08f5d02a42215",
     "id": null,
     "metadata": {},
     "name": "MovieSearchMutation",
     "operationKind": "mutation",
-    "text": "mutation MovieSearchMutation(\n  $input: MovieSearchInput!\n) {\n  movieSearch(input: $input) {\n    viewer {\n      id\n    }\n    results {\n      title\n    }\n  }\n}\n"
+    "text": "mutation MovieSearchMutation(\n  $input: MovieSearchInput!\n) {\n  movieSearch(input: $input) {\n    viewer {\n      id\n    }\n    results {\n      title\n      year\n      poster\n      rating\n    }\n  }\n}\n"
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'de4ffc60b65a85b16d4f6e3f0070cdd8';
+(node/*: any*/).hash = 'aa272949e0bbef4d18f767098f3d82b2';
 
 module.exports = node;

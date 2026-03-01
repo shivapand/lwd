@@ -14,9 +14,16 @@ export default async (
   const results = (searchJson?.results || [])
     .slice(0, limit)
     .map(
-      ({ title, overview }) => ({
+      ({ title, overview, poster_path, release_date, vote_average }) => ({
         title,
-        snippet: overview || ''
+        snippet: overview || '',
+        year: (release_date || '').slice(0, 4) || null,
+        poster: poster_path
+          ? `https://image.tmdb.org/t/p/w92${poster_path}`
+          : null,
+        rating: (vote_average != null)
+          ? vote_average.toFixed(1)
+          : null
       })
     );
 

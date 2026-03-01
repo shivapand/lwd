@@ -17,6 +17,9 @@ const mutation = graphql`
       },
       results {
         title
+        year
+        poster
+        rating
       }
     }
   }

@@ -54,7 +54,8 @@ const characterType = new GraphQLObjectType(
           type: GraphQLString,
           resolve(
             {
-              actorImageId
+              actorImageId,
+              profileImage
             },
             args,
             {
@@ -62,27 +63,31 @@ const characterType = new GraphQLObjectType(
             }
           ) {
 
-            return actorImageFindOne(
-              {
-                _id: new ObjectID(
-                  actorImageId
-                )
-              },
-              undefined,
-              db
-            )
-              .then(
-                (
-                  {
-                    base64
-                  }
-                ) => {
+            return (
+              actorImageId
+            ) ?
+              actorImageFindOne(
+                {
+                  _id: new ObjectID(
+                    actorImageId
+                  )
+                },
+                undefined,
+                db
+              )
+                .then(
+                  (
+                    {
+                      base64
+                    }
+                  ) => {
 
-                  return (
-                    base64
-                  );
-                }
-              );
+                    return (
+                      base64
+                    );
+                  }
+                ) :
+              profileImage || null;
           }
         }
       };
@@ -112,7 +117,7 @@ const splashType = new GraphQLObjectType(
             }
           ) {
 
-            return characters?.filter(
+            return characters.filter(
               (
                 character
               ) => {
@@ -121,7 +126,7 @@ const splashType = new GraphQLObjectType(
                   character.render
                 );
               }
-            ) || [];
+            );
           }
         },
         spoofable: {
@@ -155,7 +160,8 @@ const cardType = new GraphQLObjectType(
           resolve(
             {
               actorImageId,
-              gifyUrl
+              gifyUrl,
+              character
             },
             args,
             {
@@ -187,7 +193,9 @@ const cardType = new GraphQLObjectType(
                     );
                   }
                 ):
-              gifyUrl;
+              gifyUrl ||
+              character?.profileImage ||
+              null;
           }
         }
       };
@@ -334,11 +342,14 @@ const viewerType = new GraphQLObjectType(
               db,
               undefined
             )
-                .then(
-                  (res) => {
-                    return res?.splash?.title || "The Matrix";
-                  }
-                );
+              .then(
+                (res) => {
+
+                  return (
+                    res?.splash?.title || 'The Matrix'
+                  );
+                }
+              );
           }
         },
         decks: {
@@ -368,13 +379,33 @@ const viewerType = new GraphQLObjectType(
               ...connectionArgs
             },
             {
-              db, req
+              db,
+              req
             }
           ) {
 
-              console.log("GraphQL request for deckTitle:", deckTitle);
-              const deck = (deckTitle) ? (await movieCreate(deckTitle, { spoofInput, genre, createFlag: true }, db, req)) : null;
-              const deckId = (deck) ? deck._id : _deckId;
+            const deck = (
+              deckTitle
+            ) ?
+              (
+                await movieCreate(
+                  deckTitle,
+                  {
+                    spoofInput,
+                    genre,
+                    createFlag: true
+                  },
+                  db,
+                  req
+                )
+              ) :
+              null;
+
+            const deckId = (
+              deck
+            ) ?
+              deck._id :
+              _deckId;
 
             return deckConnectionGet(
               deckId,
@@ -420,6 +451,15 @@ const movieSearchResultType = new GraphQLObjectType(
           type: GraphQLString
         },
         snippet: {
+          type: GraphQLString
+        },
+        year: {
+          type: GraphQLString
+        },
+        poster: {
+          type: GraphQLString
+        },
+        rating: {
           type: GraphQLString
         }
       };

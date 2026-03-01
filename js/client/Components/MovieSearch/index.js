@@ -22,10 +22,41 @@ import {
   useIsMounted
 } from 'fns';
 import MovieSearchResultItem from './MovieSearchResultItem';
-import MovieSearchMutation 
+import MovieSearchMutation
   from 'mutations/MovieSearch';
 import MovieCreateMutation
   from 'mutations/MovieCreate';
+
+const dropdownStyle = css({
+  '& .form-control': {
+    borderRadius: 0
+  },
+  '& .dropdown-menu': {
+    backgroundColor: '#1e1e22',
+    border: '1px solid #333',
+    borderRadius: '4px',
+    padding: '4px 0',
+    marginTop: '2px'
+  },
+  '& .dropdown-item': {
+    backgroundColor: 'transparent',
+    color: '#eee',
+    padding: '4px 10px',
+    '&:hover, &:focus': {
+      backgroundColor: '#2a2a30'
+    },
+    '&.active, &:active': {
+      backgroundColor: '#333'
+    }
+  }
+});
+
+const noResultsStyle = css({
+  padding: '12px 16px',
+  color: '#888',
+  fontSize: '14px',
+  textAlign: 'center'
+});
 
 const MovieSearch = (
   props
@@ -64,6 +95,19 @@ const MovieSearch = (
     null
   );
 
+  const clientMutationIdRef = useRef(
+    0
+  );
+
+  const clientMutationIdGet = () => {
+
+    const current = clientMutationIdRef.current;
+
+    clientMutationIdRef.current = current + 1;
+
+    return current.toString();
+  };
+
   const onMovieSearchErrorHandle = (
     json
   ) => {
@@ -79,16 +123,14 @@ const MovieSearch = (
 
     const data = json.movieSearch;
 
-    const results = data.results;
+    const _results = data.results;
 
     return Promise.resolve(
       resultsSet(
-        results
+        _results
       )
     );
   };
-
-  let clientMutationId = 0;
 
   const movieSearchFn = useCallback(
     (
@@ -98,10 +140,7 @@ const MovieSearch = (
       return MovieSearchMutation.commit(
         {
           input: {
-            clientMutationId: (
-              clientMutationId++
-            )
-              .toString(),
+            clientMutationId: clientMutationIdGet(),
             text
           }
         },
@@ -111,7 +150,6 @@ const MovieSearch = (
       );
     },
     [
-      clientMutationId,
       props.relay.environment
     ]
   );
@@ -147,16 +185,12 @@ const MovieSearch = (
         .then(
           () => {
 
-            if (
-              isMounted.current
-            ) {
-
-              return Promise.resolve(
+            return isMounted.current &&
+              Promise.resolve(
                 loadingSet(
                   false
                 )
               );
-            }
           }
         );
     },
@@ -177,14 +211,10 @@ const MovieSearch = (
 
       const timer = timerRef.current;
 
-      if (
-        timer
-      ) {
-
+      timer &&
         clearTimeout(
           timer
         );
-      }
 
       timerRef.current = setTimeout(
         () => {
@@ -193,7 +223,7 @@ const MovieSearch = (
             _text
           );
         },
-        1000
+        400
       );
     },
     [
@@ -243,9 +273,11 @@ const MovieSearch = (
                     /Deck/${
                       json.movieCreate.output.splash.title
                     }?genre=${
-                      props.match.location.query.genre
+                      props.match.location.query.genre ||
+                      process.env.GENRE
                     }&hero=${
-                      props.match.location.query.hero
+                      props.match.location.query.hero ||
+                      process.env.HERO
                     }
                   `
                     .trim()
@@ -266,38 +298,29 @@ const MovieSearch = (
       title
     ) => {
 
-      if (
-        !title
-      ) {
-
-        return (
-          null
-        );
-      }
-
-      return MovieCreateMutation.commit(
-        {
-          input: {
-            clientMutationId: (
-              clientMutationId++
-            )
-              .toString(),
-            text: title,
-            source: 'user',
-            createFlag: true,
-            genre: props.match.location.query.genre,
-            spoofInput: {
-              hero: props.match.location.query.hero
+      return !title
+        ? null
+        : MovieCreateMutation.commit(
+          {
+            input: {
+              clientMutationId: clientMutationIdGet(),
+              text: title,
+              source: 'user',
+              createFlag: true,
+              genre: props.match.location.query.genre ||
+                process.env.GENRE,
+              spoofInput: {
+                hero: props.match.location.query.hero ||
+                  process.env.HERO
+              }
             }
-          }
-        },
-        props.relay.environment,
-        onMovieCreateErrorHandle,
-        onMovieCreateCompletedHandle
-      );
+          },
+          props.relay.environment,
+          onMovieCreateErrorHandle,
+          onMovieCreateCompletedHandle
+        );
     },
     [
-      clientMutationId,
       props.relay.environment,
       onMovieCreateCompletedHandle
     ]
@@ -323,122 +346,111 @@ const MovieSearch = (
       .then(
         () => {
 
-          if (
-            isMounted.current
-          ) {
-
-            return Promise.resolve(
+          return isMounted.current &&
+            Promise.resolve(
               loadingSet(
                 false
               )
             );
-          }
         }
       );
   };
 
   const onChangeHandle = (
     [
-      title
+      result
     ]
   ) => {
 
-    if (
-      !loading
-    ) {
-
-      return movieCreate(
-        title
+    return !loading &&
+      movieCreate(
+        result?.title
       );
-    }
   };
 
   const onInputChangeHandle = (
     text
   ) => {
 
-    if (
-      !text
-    ) {
-
-      return Promise.resolve(
+    return !text &&
+      Promise.resolve(
         resultsSet(
           null
         )
       );
-    }
   };
 
   const menuRender = (
-    results,
+    _results,
     menuProps
   ) => {
 
-    if (
-      loading ||
-      isInvalid ||
-      !results
-    ) {
+    return (() => {
 
-      return (
-        null
-      );
-    }
+      switch (true) {
 
-    return (
-      <TypeaheadMenu
-        {
-          ...menuProps
-        }
-        options = {
-          results?.map(
-            (
+        case (
+          loading ||
+          isInvalid ||
+          !results
+        ):
+          return (
+            null
+          );
+
+        case (
+          results.length === 0
+        ):
+          return (
+            <ul
               {
-                title
+                ...menuProps
               }
-            ) => {
+              className = {
+                `dropdown-menu show ${
+                  menuProps.className || ''
+                }`
+              }
+            >
+              <li>
+                <div
+                  css = {
+                    noResultsStyle
+                  }
+                >
+                  No results found
+                </div>
+              </li>
+            </ul>
+          );
 
-              return (
-                title
-              );
-            }
-          )
-        }
-      />
-    );
+        default:
+          return (
+            <TypeaheadMenu
+              {
+                ...menuProps
+              }
+              options = {
+                results
+              }
+              labelKey = 'title'
+            />
+          );
+      }
+    })();
   };
 
   const menuItemChildrenRender = (
-    resultTitle
+    result
   ) => {
 
     return (
       <MovieSearchResultItem
-        viewer = {
-          props.viewer
-        }
-        match = {
-          props.match
-        }
-        resultTitle = {
-          resultTitle
+        result = {
+          result
         }
       />
     );
-  };
-
-  const loadingRender = () => {
-
-    return (
-      loading
-    ) &&
-      <div
-        className = 'rbt-aux'
-      >
-        <i
-          className = 'fa fa-spinner fa-spin'
-        ></i>
-      </div>;
   };
 
   const renderFn = () => {
@@ -459,27 +471,22 @@ const MovieSearch = (
             }
             className = 'formControl w-100'
             css = {
-              css(
-                {
-                  '& .form-control': {
-                    borderRadius: 0
-                  }
-                }
-              )
+              dropdownStyle
             }
             size = 'large'
-            placeholder = 
+            placeholder =
               '&#128269; by movie title ...'
             data-key = 'text'
             minLength = {
               1
             }
+            labelKey = 'title'
             options = {
-              results || 
+              results ||
               []
             }
             isLoading = {
-              false
+              loading
             }
             onSearch = {
               movieSearchDelay
@@ -502,11 +509,7 @@ const MovieSearch = (
             isInvalid = {
               isInvalid
             }
-          >
-            {
-              loadingRender()
-            }
-          </AsyncTypeahead>
+          />
 
           <small
             className = 'invalidFeedback text-danger'
@@ -532,7 +535,7 @@ export default createFragmentContainer(
   {
     viewer: graphql`
       fragment MovieSearch_viewer on Viewer {
-        ...MovieSearchResultItem_viewer
+        id
       }
     `
   }
