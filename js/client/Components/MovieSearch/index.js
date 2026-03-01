@@ -29,14 +29,37 @@ import MovieCreateMutation
 
 const dropdownStyle = css({
   '& .form-control': {
-    borderRadius: 0
+    borderRadius: 0,
+    backgroundColor: '#1e1e22',
+    color: '#eee',
+    borderColor: '#333',
+    '&::placeholder': {
+      color: '#888'
+    },
+    '&:focus': {
+      backgroundColor: '#1e1e22',
+      color: '#eee',
+      borderColor: '#555',
+      boxShadow: 'none'
+    }
   },
   '& .dropdown-menu': {
     backgroundColor: '#1e1e22',
     border: '1px solid #333',
     borderRadius: '4px',
     padding: '4px 0',
-    marginTop: '2px'
+    marginTop: '2px',
+    scrollbarColor: '#333 #1e1e22',
+    '&::-webkit-scrollbar': {
+      width: '8px'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#1e1e22'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: '#333',
+      borderRadius: '4px'
+    }
   },
   '& .dropdown-item': {
     backgroundColor: 'transparent',

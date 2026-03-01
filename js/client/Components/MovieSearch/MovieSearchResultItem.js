@@ -13,28 +13,6 @@ const containerStyle = css({
   minWidth: 0
 });
 
-const posterStyle = css({
-  width: '46px',
-  height: '69px',
-  borderRadius: '3px',
-  objectFit: 'cover',
-  flexShrink: 0,
-  background: '#2a2a2e'
-});
-
-const placeholderStyle = css({
-  width: '46px',
-  height: '69px',
-  borderRadius: '3px',
-  flexShrink: 0,
-  background: '#2a2a2e',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: '#888',
-  fontSize: '20px'
-});
-
 const infoStyle = css({
   minWidth: 0,
   flex: 1
@@ -84,31 +62,6 @@ const MovieSearchResultItem = (
         containerStyle
       }
     >
-      {
-        !result.poster
-          ? (
-            <div
-              css = {
-                placeholderStyle
-              }
-            >
-              <i
-                className = 'fa fa-film'
-              />
-            </div>
-          )
-          : (
-            <img
-              css = {
-                posterStyle
-              }
-              src = {
-                result.poster
-              }
-              alt = ''
-            />
-          )
-      }
       <div
         css = {
           infoStyle

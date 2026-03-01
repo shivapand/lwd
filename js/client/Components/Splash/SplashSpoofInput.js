@@ -96,7 +96,19 @@ const SplashSpoofInput = (
               css = {
                 css(
                   {
-                    backgroundImage: 'none !important'
+                    backgroundImage: 'none !important',
+                    backgroundColor: '#1e1e22',
+                    color: '#eee',
+                    borderColor: '#333',
+                    '&::placeholder': {
+                      color: '#888'
+                    },
+                    '&:focus': {
+                      backgroundColor: '#1e1e22',
+                      color: '#eee',
+                      borderColor: '#555',
+                      boxShadow: 'none'
+                    }
                   }
                 )
               }
