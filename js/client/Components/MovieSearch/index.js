@@ -329,6 +329,10 @@ const MovieSearch = (
       .then(
         () => {
 
+          window.dispatchEvent(
+            new CustomEvent('deckLoading', { detail: true })
+          );
+
           return movieCreateFn(
             title
           );

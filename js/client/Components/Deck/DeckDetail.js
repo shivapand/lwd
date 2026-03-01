@@ -134,6 +134,32 @@ const DeckDetail = (
     ]
   );
 
+  useEffect(
+    () => {
+
+      const onDeckLoadingHandle = () => {
+
+        return loadingSet(
+          true
+        );
+      };
+
+      window.addEventListener(
+        'deckLoading',
+        onDeckLoadingHandle
+      );
+
+      return () => {
+
+        window.removeEventListener(
+          'deckLoading',
+          onDeckLoadingHandle
+        );
+      };
+    },
+    []
+  );
+
   const onSplashSpoofInputTriggerHandle = (
     text
   ) => {
