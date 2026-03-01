@@ -53,7 +53,10 @@ const SplashCharacter = (
               right: 0,
               bottom: 0,
               fontFamily: 'inherit',
-              fontSize: '1.1rem'
+              fontSize: '1.1rem',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }
           )
         }

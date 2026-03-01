@@ -24,7 +24,7 @@ const DeckNode = (
 
   const splashCharacterElementSize = (
     process.env.OUTPUT_RES /
-    2.5
+    2
   );
 
   const refreshRender = () => {
