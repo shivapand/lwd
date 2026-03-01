@@ -39,17 +39,27 @@ const wordBoundaryIndexGet = (
     : -1;
 };
 
+const STOP_WORDS = ['the', 'a', 'an', 'no', 'my', 'his', 'her', 'old', 'big'];
+
 const characterNameVariantsGet = (character) => {
 
-  const fullName = character.text;
+  const variants = (character.characterNameFull || character.text)
+    .split('/')
+    .map((name) => name.replace(/\(.*?\)/g, '').trim())
+    .filter((name) => name.length > 1);
 
-  const firstName = fullName.split(/\s+/)[0];
+  const firstNames = variants
+    .map((name) => name.split(/\s+/)[0])
+    .filter((name) => name.length > 1)
+    .filter((name) => !STOP_WORDS.includes(name.toLowerCase()));
 
-  const variants = (firstName.length > 1 && firstName !== fullName)
-    ? [fullName, firstName]
-    : [fullName];
-
-  return variants;
+  return [...variants, ...firstNames].reduce(
+    (memo, name) =>
+      memo.find((m) => m.toLowerCase() === name.toLowerCase())
+        ? memo
+        : [...memo, name],
+    []
+  );
 };
 
 const sentenceCharactersGet = (sentence, characters) =>

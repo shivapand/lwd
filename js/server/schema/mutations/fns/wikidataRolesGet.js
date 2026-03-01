@@ -151,7 +151,7 @@ const wikidataRolesGet = async (characters, title) => {
 
       const rowCollection = json?.results?.bindings || [];
 
-      return rowCollection.reduce(
+      const roles = rowCollection.reduce(
         (memo, row) => {
 
           const characterLabel = row.characterLabel?.value;
@@ -175,6 +175,47 @@ const wikidataRolesGet = async (characters, title) => {
               return (!memo[key])
                 ? { ...memo, [key]: matchedCharacter }
                 : memo;
+            })();
+        },
+        { hero: null, villain: null, heroine: null }
+      );
+
+      return ['hero', 'villain', 'heroine'].reduce(
+        (memo, key) => {
+
+          const character = roles[key];
+
+          return (!character)
+            ? memo
+            : (() => {
+
+              const roleKey = (key === 'heroine')
+                ? 'hero'
+                : key;
+
+              const aliasCollection = rowCollection
+                .filter((row) => {
+
+                  const label = row.characterLabel?.value;
+
+                  return label &&
+                    roleGet(row) === roleKey &&
+                    !characterMatchGet(label, characters);
+                })
+                .map((row) => row.characterLabel.value);
+
+              const characterNameFull = aliasCollection.reduce(
+                (fullName, alias) =>
+                  fullName.toLowerCase().includes(alias.toLowerCase())
+                    ? fullName
+                    : `${fullName} / ${alias}`,
+                character.characterNameFull || character.text
+              );
+
+              return {
+                ...memo,
+                [key]: { ...character, characterNameFull }
+              };
             })();
         },
         { hero: null, villain: null, heroine: null }

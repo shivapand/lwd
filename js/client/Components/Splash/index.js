@@ -92,7 +92,7 @@ const Splash = (
               fontSize: props.textFontSize,
               minHeight: props.textElementMinHeight,
               padding: '0.5rem',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+              backgroundColor: 'rgba(0, 0, 0, 0.8)'
             }
           )
         }

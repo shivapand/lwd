@@ -66,7 +66,8 @@ const deckPreBuiltGet = async (
   characters = await charactersMetaAssignedGet(
     characters,
     cards,
-    movieDataBasic.title
+    movieDataBasic.title,
+    movieDataBasic.roles
   );
 
   cards = cardsMetaAssignedGet(

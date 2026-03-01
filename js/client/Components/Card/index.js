@@ -68,8 +68,9 @@ const Card  = (
     ) {
 
       case (
-        props.card.character?.role !==
-        'hero'
+        !['hero', 'villain', 'heroine'].includes(
+          props.card.character?.role
+        )
       ) :
 
         return (
@@ -103,7 +104,7 @@ const Card  = (
               minHeight: props.textElementMinHeight,
               fontFamily: 'inherit',
               fontSize: props.textFontSize,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+              backgroundColor: 'rgba(0, 0, 0, 0.8)'
             }
           )
         }

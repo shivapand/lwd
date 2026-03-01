@@ -20,21 +20,19 @@ const SplashCharacter = (
     ) {
 
       case (
-        props.character.role !==
-        'hero'
-      ) :
-
-        return (
-          'grayscale(100%)'
-        );
-
-      case (
-        props.character.role ===
-        'hero'
+        ['hero', 'villain', 'heroine'].includes(
+          props.character.role
+        )
       ) :
 
         return (
           'grayscale(50%)'
+        );
+
+      default :
+
+        return (
+          'grayscale(100%)'
         );
     }
   };

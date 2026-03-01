@@ -135,23 +135,18 @@ const charactersMetaHeroineAssignedGet = (
     (character) => character.role === 'heroine'
   );
 
-  const match = existingHeroine || characters.find(
-    (
-      character
-    ) => {
-
-      return (
-        (
-          character.actor.gender ===
-          'woman'
-        ) &&
-        (
-          character.castIndex >
-          0
-        )
-      );
-    }
-  );
+  const match = existingHeroine ||
+    characters.find(
+      (character) =>
+        character.actor.gender === 'woman' &&
+        character.castIndex > 0 &&
+        character.profileImage
+    ) ||
+    characters.find(
+      (character) =>
+        character.actor.gender === 'woman' &&
+        character.castIndex > 0
+    );
 
   return (!match)
     ? characters
@@ -651,13 +646,15 @@ const charactersGet = (
 
 const charactersRoleAssignedGet = async (
   _characters,
-  title
+  title,
+  roles
 ) => {
 
-  let characters = 
+  let characters =
   await charactersMetaRoleVillainAssignedGet(
     _characters,
-    title
+    title,
+    roles
   );
 
   characters = charactersMetaHeroineAssignedGet(
@@ -687,7 +684,8 @@ const charactersRoleAssignedGet = async (
 
 export default async (
   _characters,
-  title
+  title,
+  roles
 ) => {
 
   let characters = charactersRoleMatchIndexAssignedGet(
@@ -696,7 +694,8 @@ export default async (
 
   characters = await charactersRoleAssignedGet(
     characters,
-    title
+    title,
+    roles
   );
 
   return (

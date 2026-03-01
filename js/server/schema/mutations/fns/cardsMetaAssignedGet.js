@@ -31,6 +31,10 @@ export default (
           ...memo,
           {
             ...card,
+            character: {
+              ...card.character,
+              role: character.role
+            },
             dualRoleIndex: character.dualRoleIndex
           }
         ];

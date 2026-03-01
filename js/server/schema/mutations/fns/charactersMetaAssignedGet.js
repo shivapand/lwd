@@ -10,7 +10,8 @@ import charactersMetaRenderAssignedGet
 export default async (
   _characters,
   cards,
-  title
+  title,
+  roles
 ) => {
 
   let characters = charactersMetaStarringAssignedGet(
@@ -20,7 +21,8 @@ export default async (
 
   characters = await charactersMetaRoleAssignedGet(
     characters,
-    title
+    title,
+    roles
   );
 
   characters = charactersMetaRenderAssignedGet(

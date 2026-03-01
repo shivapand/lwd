@@ -17,6 +17,8 @@ const wordBoundaryMatchFlagGet = (
     .test(text);
 };
 
+const STOP_WORDS = ['the', 'a', 'an', 'no', 'my', 'his', 'her', 'old', 'big'];
+
 const characterNameVariantsGet = (castMember) => {
 
   const variants = castMember.characterNameFull
@@ -26,7 +28,8 @@ const characterNameVariantsGet = (castMember) => {
 
   const firstNames = variants
     .map((name) => name.split(/\s+/)[0])
-    .filter((name) => name.length > 1);
+    .filter((name) => name.length > 1)
+    .filter((name) => !STOP_WORDS.includes(name.toLowerCase()));
 
   return [...variants, ...firstNames].reduce(
     (memo, name) =>
@@ -57,7 +60,7 @@ export default async (
 
       const nameVariants = characterNameVariantsGet(castMember);
 
-      return (!characterInPlotFlagGet(nameVariants, plotJoined))
+      return (castIndex && !characterInPlotFlagGet(nameVariants, plotJoined))
         ? memo
         : [
           ...memo,

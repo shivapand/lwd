@@ -1,36 +1,76 @@
 'use strict';
 
-import tmdbFetch from '../fns/tmdbFetch';
+import nodeFetch from 'node-fetch';
+
+const WIKIDATA_SPARQL_URL = 'https://query.wikidata.org/sparql';
+
+const sparqlQueryGet = (title, limit) =>
+  `SELECT ?film ?filmLabel ?year ?image ?articleName WHERE {
+  ?film wdt:P31 wd:Q11424 .
+  ?film rdfs:label ?label .
+  FILTER(LANG(?label) = "en")
+  FILTER(CONTAINS(LCASE(?label), LCASE("${title}")))
+  OPTIONAL { ?film wdt:P577 ?pubDate }
+  OPTIONAL { ?film wdt:P18 ?image }
+  OPTIONAL {
+    ?sitelink schema:about ?film .
+    ?sitelink schema:isPartOf <https://en.wikipedia.org/> .
+    ?sitelink schema:name ?articleName .
+  }
+  BIND(YEAR(?pubDate) AS ?year)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+}
+ORDER BY DESC(?year)
+LIMIT ${limit}`;
+
+const posterUrlGet = (imageUri) => {
+
+  const filename = decodeURIComponent(
+    imageUri.split('/').pop()
+  );
+
+  return `https://commons.wikimedia.org/wiki/Special:FilePath/${
+    encodeURIComponent(filename)
+  }?width=92`;
+};
+
+const resultGet = (binding) => ({
+  title: binding.articleName?.value || binding.filmLabel?.value || '',
+  snippet: '',
+  year: binding.year?.value || null,
+  poster: binding.image?.value
+    ? posterUrlGet(binding.image.value)
+    : null,
+  rating: null
+});
 
 export default async (
   text,
   limit = 5
 ) => {
 
-  const searchJson = await tmdbFetch(
-    `/search/movie?query=${encodeURIComponent(text)}&language=en-US&page=1`
-  );
+  const query = sparqlQueryGet(text, limit);
 
-  const MIN_POPULARITY = 5;
+  const url = `${WIKIDATA_SPARQL_URL}?query=${
+    encodeURIComponent(query)
+  }&format=json`;
 
-  const results = (searchJson?.results || [])
-    .filter(
-      ({ popularity }) => popularity >= MIN_POPULARITY
-    )
-    .slice(0, limit)
-    .map(
-      ({ title, overview, poster_path, release_date, vote_average }) => ({
-        title,
-        snippet: overview || '',
-        year: (release_date || '').slice(0, 4) || null,
-        poster: poster_path
-          ? `https://image.tmdb.org/t/p/w92${poster_path}`
-          : null,
-        rating: (vote_average != null)
-          ? vote_average.toFixed(1)
-          : null
-      })
-    );
+  const res = await nodeFetch(url, {
+    headers: {
+      'User-Agent': 'LWD-Demo-Bot (pyratin@gmail.com)',
+      'Accept': 'application/sparql-results+json'
+    },
+    timeout: 15000
+  });
 
-  return results;
+  return (!res.ok)
+    ? []
+    : await (async () => {
+
+      const json = await res.json();
+
+      const bindingCollection = json?.results?.bindings || [];
+
+      return bindingCollection.map(resultGet);
+    })();
 };

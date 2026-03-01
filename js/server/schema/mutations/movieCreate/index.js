@@ -356,10 +356,15 @@ const deckGet = async (
       !!deck
     ) :
 
-      return deckCachedHandledGet(
-        deck,
+      await db.collection('decks').deleteMany(
+        { 'splash.title': text }
+      );
+
+      return deckGetFn(
+        text,
         spoofInput,
         genre,
+        plotLimit,
         db
       );
 

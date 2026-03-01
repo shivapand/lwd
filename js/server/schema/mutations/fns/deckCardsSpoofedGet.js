@@ -39,6 +39,8 @@ const wordBoundaryIndexGet = (
     : -1;
 };
 
+const STOP_WORDS = ['the', 'a', 'an', 'no', 'my', 'his', 'her', 'old', 'big'];
+
 const characterNameVariantsGet = (
   character
 ) => {
@@ -78,7 +80,8 @@ const characterNameVariantsGet = (
         ...(
           (
             firstName.length > 1 &&
-            firstName !== trimmed
+            firstName !== trimmed &&
+            !STOP_WORDS.includes(firstName.toLowerCase())
           )
             ? [firstName]
             : []
