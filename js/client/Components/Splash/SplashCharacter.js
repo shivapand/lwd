@@ -52,7 +52,7 @@ const SplashCharacter = (
               left: 0,
               right: 0,
               bottom: 0,
-              fontFamily: 'Muli',
+              fontFamily: 'inherit',
               fontSize: '1.1rem'
             }
           )

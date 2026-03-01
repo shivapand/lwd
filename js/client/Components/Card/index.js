@@ -101,9 +101,9 @@ const Card  = (
               right: 0,
               bottom: 0,
               minHeight: props.textElementMinHeight,
-              fontFamily: 'Muli',
+              fontFamily: 'inherit',
               fontSize: props.textFontSize,
-              backgroundColor: '#000'
+              backgroundColor: 'rgba(0, 0, 0, 0.5)'
             }
           )
         }

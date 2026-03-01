@@ -88,11 +88,11 @@ const Splash = (
               left: 0,
               right: 0,
               bottom: 0,
-              fontFamily: 'Muli',
+              fontFamily: 'inherit',
               fontSize: props.textFontSize,
               minHeight: props.textElementMinHeight,
               padding: '0.5rem',
-              backgroundColor: '#000'
+              backgroundColor: 'rgba(0, 0, 0, 0.5)'
             }
           )
         }
@@ -104,7 +104,6 @@ const Splash = (
           className = {
             `
               d-inline-block
-              m-2
               rounded-circle
               border border-secondary
               text-white
@@ -114,19 +113,19 @@ const Splash = (
           css = {
             css(
               {
-                width: '3rem',
-                height: '3rem',
-                lineHeight: '3rem',
-                padding: 0
+                width: '1.8rem',
+                height: '1.8rem',
+                lineHeight: '1.8rem',
+                fontSize: '1.1rem',
+                padding: 0,
+                margin: '0.3rem 0'
               }
             )
           }
         >
           in
         </div>
-        <div
-          className = 'p-1 m-0'
-        >
+        <div>
           {
             props.splash.title
           }

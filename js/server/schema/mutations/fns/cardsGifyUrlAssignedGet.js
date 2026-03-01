@@ -17,22 +17,13 @@ const cardsForGifyGet = (
       cardIndex
     ) => {
 
-      if (
-        !card?.character?.text
-      ) {
-
-        return [
-          ...cardMemo,
-          {
-            ...card,
-            cardIndex
-          }
-        ];
-      }
-
-      return (
-        cardMemo
-      );
+      return [
+        ...cardMemo,
+        {
+          ...card,
+          cardIndex
+        }
+      ];
     },
     []
   );

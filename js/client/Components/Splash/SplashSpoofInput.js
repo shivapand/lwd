@@ -20,7 +20,7 @@ const SplashSpoofInput = (
     text,
     textSet
   ] = useState(
-    props.match.location.query.hero || ''
+    ''
   );
 
   const onChangeHandle = (
