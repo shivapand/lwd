@@ -106,31 +106,13 @@ export default async (
         deck
       ) => {
 
-        const randomFallbackTitle = 'The Matrix';
-
         return (!deck || !deck.splash)
-          ? (deckTitle === 'random')
-            ? res.json(
-              {
-                redirect: `/deck/${
-                  encodeURIComponent(randomFallbackTitle)
-                }?genre=${genre}&hero=${encodeURIComponent(hero)}`
-              }
-            )
-            : res.status(404).json(
-              {
-                error: 'deck not found'
-              }
-            )
-          : (deckTitle === 'random')
-            ? res.json(
-              {
-                redirect: `/deck/${
-                  encodeURIComponent(deck.splash.title)
-                }?genre=${genre}&hero=${encodeURIComponent(hero)}`
-              }
-            )
-            : (() => {
+          ? res.status(404).json(
+            {
+              error: 'deck not found'
+            }
+          )
+          : (() => {
 
               const actorImageIdCollection = [
                 ...(deck.splash.characters || []),

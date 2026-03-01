@@ -19,7 +19,6 @@ import Loading from 'Components/Loading';
 import Carousel from 'Components/Carousel';
 import Splash from 'Components/Splash';
 import Card from 'Components/Card';
-import DeckRefresh from './DeckRefresh';
 
 const textElementMinHeight = '6rem';
 
@@ -85,22 +84,33 @@ const DeckPage = () => {
         }`
       )
         .then(
-          (res) => res.json()
+          (res) => (!res.ok)
+            ? Promise.reject(
+              new Error(`Server error: ${res.status}`)
+            )
+            : res.json()
         )
         .then(
           (data) => {
 
-            return (data.redirect)
-              ? navigate(
-                data.redirect,
-                {
-                  replace: true
-                }
+            deckSet(data);
+            loadingSet(false);
+
+            const actualTitle = data?.splash?.title;
+
+            return (actualTitle && actualTitle !== deckTitle)
+              ? window.history.replaceState(
+                null,
+                '',
+                `/deck/${
+                  encodeURIComponent(actualTitle)
+                }?genre=${
+                  encodeURIComponent(genre)
+                }&hero=${
+                  encodeURIComponent(hero)
+                }`
               )
-              : (() => {
-                deckSet(data);
-                loadingSet(false);
-              })();
+              : null;
           }
         )
         .catch(
@@ -141,34 +151,6 @@ const DeckPage = () => {
       }&hero=${
         encodeURIComponent(text)
       }`
-    );
-  };
-
-  const refreshRender = () => {
-
-    return (
-      <div
-        className = {
-          `
-            refreshContainer
-            p-1 m-1
-            rounded-circle
-            bg-dark text-white
-          `
-        }
-        css = {
-          css(
-            {
-              position: 'absolute',
-              zIndex: 2,
-              right: 0,
-              opacity: .25
-            }
-          )
-        }
-      >
-        <DeckRefresh />
-      </div>
     );
   };
 
@@ -317,9 +299,6 @@ const DeckPage = () => {
           )
         }
       >
-        {
-          refreshRender()
-        }
         {
           carouselRender()
         }

@@ -40,7 +40,7 @@ const queryGet = (
       text
     } ${
       title
-    }
+    } cartoon
   `
     .trim();
 

@@ -204,33 +204,35 @@ const deckRandomGet = async (
 
   const count = await deckCountDocuments(
     {
-      source: sourceName,
       'splash.spoofable': true
     },
     undefined,
     db
   );
 
-  const skip = Math.floor(
-    Math.random() *
-    count
-  );
+  const skip = (!count)
+    ? 0
+    : Math.floor(
+      Math.random() *
+      count
+    );
 
-  let deck = (
-    await deckFind(
-      {
-        source: sourceName,
-        'splash.spoofable': true
-      },
-      {
-        skip,
-        limit: 1
-      },
-      db
-    )
-  )[
-    0
-  ];
+  let deck = (!count)
+    ? null
+    : (
+      await deckFind(
+        {
+          'splash.spoofable': true
+        },
+        {
+          skip,
+          limit: 1
+        },
+        db
+      )
+    )[
+      0
+    ];
 
   deck = await deckCachedHandledGet(
     deck,
@@ -289,8 +291,6 @@ const deckGet = async (
   db
 ) => {
 
-  let deck;
-
   switch (
     true
   ) {
@@ -338,26 +338,6 @@ const deckGet = async (
     ) :
 
       return deckRandomGet(
-        spoofInput,
-        genre,
-        db
-      );
-
-    case (
-      (
-        deck = await deckFindOne(
-          {
-            'splash.title': text
-          },
-          undefined,
-          db
-        )
-      ) &&
-      !!deck
-    ) :
-
-      return deckCachedHandledGet(
-        deck,
         spoofInput,
         genre,
         db
