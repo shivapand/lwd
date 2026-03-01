@@ -38,25 +38,25 @@ const queryGet = (
   const queryText = `
     ${
       text
-    } : ${
+    } ${
       title
     }
   `
     .trim();
 
-  const gifyApiKey = 
+  const gifyApiKey =
     process.env.npm_package_config_GIFY_API_KEY;
 
   return `
-    https://api.giphy.com/v1/gifs/translate?api_key=${
+    https://api.giphy.com/v1/gifs/search?api_key=${
       gifyApiKey
-    }&weirdness=${
-      index
-    }&s=${
+    }&q=${
       encodeURIComponent(
         queryText
       )
-    }
+    }&limit=1&offset=${
+      index
+    }&rating=g
   `
     .trim();
 };
@@ -107,7 +107,7 @@ const cardsFlatlistGifyUrlAssignedGetFn = (
           json
         ) => {
 
-          const gifyUrl = json.data?.images?.[
+          const gifyUrl = json.data?.[0]?.images?.[
             'original_still'
           ]
             ?.url;
@@ -217,22 +217,14 @@ const cardsGifyUrlAssignedGet = (
         cardIndex
       );
 
-      if (
-        _cardsFlatlist
-      ) {
-
-        return [
-          ...memo,
-          {
+      return [
+        ...memo,
+        (!_cardsFlatlist)
+          ? card
+          : {
             ...card,
             gifyUrl: _cardsFlatlist.gifyUrl
           }
-        ];
-      }
-
-      return [
-        ...memo,
-        card
       ];
     },
     []
