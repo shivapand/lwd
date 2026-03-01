@@ -331,29 +331,66 @@ const characterGroupsOrderedGet = (
     []
   );
 
+  const heroCastIndexCollection = heroGroups.reduce(
+    (
+      memo,
+      group
+    ) => {
+
+      return [
+        ...memo,
+        ...group.map(
+          (
+            character
+          ) => {
+
+            return (
+              character.castIndex
+            );
+          }
+        )
+      ];
+    },
+    []
+  );
+
   let villainGroups = characterGroups.reduce(
     (
       memo,
       characterGroup
     ) => {
 
-      const match = characterGroup.find(
+      const heroOverlapFlag = characterGroup.find(
         (
           character
         ) => {
 
-          return (
-            character.role ===
-            'villain'
+          return heroCastIndexCollection.includes(
+            character.castIndex
           );
         }
       );
 
-      if (
-        match
-      ) {
+      const match = (
+        !heroOverlapFlag
+      ) &&
+        characterGroup.find(
+          (
+            character
+          ) => {
 
-        return [
+            return (
+              character.role ===
+              'villain'
+            );
+          }
+        );
+
+      return (
+        !match
+      )
+        ? memo
+        : [
           ...memo,
           characterGroup.map(
             (
@@ -367,11 +404,6 @@ const characterGroupsOrderedGet = (
             }
           )
         ];
-      }
-
-      return (
-        memo
-      );
     },
     []
   );

@@ -1,5 +1,44 @@
 'use strict';
 
+const wordBoundaryMatchFlagGet = (
+  text,
+  name
+) => {
+
+  const escaped = name.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  return new RegExp(
+    `\\b${escaped}\\b`,
+    'i'
+  )
+    .test(text);
+};
+
+const wordBoundaryIndexGet = (
+  text,
+  name
+) => {
+
+  const escaped = name.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  const match = text.match(
+    new RegExp(
+      `\\b${escaped}\\b`,
+      'i'
+    )
+  );
+
+  return match
+    ? match.index
+    : -1;
+};
+
 const characterNameVariantsGet = (
   character
 ) => {
@@ -89,8 +128,9 @@ const cardMatchesGet = (
 
       const matchedVariant = nameVariants.find(
         (name) =>
-          baseText.toLowerCase().includes(
-            name.toLowerCase()
+          wordBoundaryMatchFlagGet(
+            baseText,
+            name
           )
       );
 
@@ -104,10 +144,10 @@ const cardMatchesGet = (
             character,
             originalName: matchedVariant,
             spoofName: character.text,
-            distance: baseText.toLowerCase()
-              .indexOf(
-                matchedVariant.toLowerCase()
-              )
+            distance: wordBoundaryIndexGet(
+              baseText,
+              matchedVariant
+            )
           }
         ];
     },

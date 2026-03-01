@@ -1,5 +1,22 @@
 'use strict';
 
+const wordBoundaryMatchFlagGet = (
+  text,
+  name
+) => {
+
+  const escaped = name.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  return new RegExp(
+    `\\b${escaped}\\b`,
+    'i'
+  )
+    .test(text);
+};
+
 const characterNameVariantsGet = (castMember) => {
 
   const variants = castMember.characterNameFull
@@ -25,7 +42,7 @@ const plotTextJoinedGet = (plot) =>
 
 const characterInPlotFlagGet = (nameVariants, plotJoined) =>
   !!nameVariants.find(
-    (name) => plotJoined.toLowerCase().includes(name.toLowerCase())
+    (name) => wordBoundaryMatchFlagGet(plotJoined, name)
   );
 
 export default async (
@@ -47,6 +64,7 @@ export default async (
           {
             text: castMember.characterName,
             characterNameFull: castMember.characterNameFull,
+            profileImage: castMember.profileImage,
             actor: castMember.actor,
             castIndex
           }

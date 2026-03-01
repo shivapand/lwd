@@ -1,5 +1,44 @@
 'use strict';
 
+const wordBoundaryMatchFlagGet = (
+  text,
+  name
+) => {
+
+  const escaped = name.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  return new RegExp(
+    `\\b${escaped}\\b`,
+    'i'
+  )
+    .test(text);
+};
+
+const wordBoundaryIndexGet = (
+  text,
+  name
+) => {
+
+  const escaped = name.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  const match = text.match(
+    new RegExp(
+      `\\b${escaped}\\b`,
+      'i'
+    )
+  );
+
+  return match
+    ? match.index
+    : -1;
+};
+
 const characterNameVariantsGet = (character) => {
 
   const fullName = character.text;
@@ -20,18 +59,21 @@ const sentenceCharactersGet = (sentence, characters) =>
 
       const nameVariants = characterNameVariantsGet(character);
 
-      const matchFlag = !!nameVariants.find(
+      const matchedName = nameVariants.find(
         (name) =>
-          sentence.text.toLowerCase().includes(name.toLowerCase())
+          wordBoundaryMatchFlagGet(sentence.text, name)
       );
 
-      return (!matchFlag)
+      return (!matchedName)
         ? memo
         : [
           ...memo,
           {
             ...character,
-            distance: 0
+            distance: wordBoundaryIndexGet(
+              sentence.text,
+              matchedName
+            )
           }
         ];
     },
