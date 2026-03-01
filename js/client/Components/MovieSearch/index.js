@@ -57,6 +57,10 @@ const dropdownStyle = css({
       borderRadius: '4px'
     }
   },
+  '& .rbt-loader': {
+    borderColor: '#888',
+    borderRightColor: 'transparent'
+  },
   '& .dropdown-item': {
     backgroundColor: 'transparent',
     color: '#eee',
@@ -68,13 +72,6 @@ const dropdownStyle = css({
       backgroundColor: '#333'
     }
   }
-});
-
-const noResultsStyle = css({
-  padding: '12px 16px',
-  color: '#888',
-  fontSize: '14px',
-  textAlign: 'center'
 });
 
 const MovieSearch = () => {
@@ -112,6 +109,10 @@ const MovieSearch = () => {
     null
   );
 
+  const abortRef = useRef(
+    null
+  );
+
   const navigate = useNavigate();
 
   const [
@@ -123,10 +124,20 @@ const MovieSearch = () => {
       text
     ) => {
 
+      abortRef.current &&
+        abortRef.current.abort();
+
+      const controller = new AbortController();
+
+      abortRef.current = controller;
+
       return fetch(
         `/api/search?q=${
           encodeURIComponent(text)
-        }`
+        }`,
+        {
+          signal: controller.signal
+        }
       )
         .then(
           (res) => res.json()
@@ -183,9 +194,12 @@ const MovieSearch = () => {
           }
         )
         .catch(
-          () => {
+          (error) => {
 
-            return isMounted.current &&
+            return (
+              isMounted.current &&
+              error?.name !== 'AbortError'
+            ) &&
               Promise.resolve(
                 loadingSet(
                   false
@@ -200,36 +214,6 @@ const MovieSearch = () => {
     ]
   );
 
-  const timerRef = useRef(
-    null
-  );
-
-  const movieSearchDelay = useCallback(
-    (
-      _text
-    ) => {
-
-      const timer = timerRef.current;
-
-      timer &&
-        clearTimeout(
-          timer
-        );
-
-      timerRef.current = setTimeout(
-        () => {
-
-          return movieSearch(
-            _text
-          );
-        },
-        400
-      );
-    },
-    [
-      movieSearch
-    ]
-  );
 
   const resultsFilter = (
     options
@@ -286,59 +270,19 @@ const MovieSearch = () => {
     menuProps
   ) => {
 
-    return (() => {
-
-      switch (true) {
-
-        case (
-          loading ||
-          isInvalid ||
-          !results
-        ):
-          return (
-            null
-          );
-
-        case (
-          results.length === 0
-        ):
-          return (
-            <ul
-              {
-                ...menuProps
-              }
-              className = {
-                `dropdown-menu show ${
-                  menuProps.className || ''
-                }`
-              }
-            >
-              <li>
-                <div
-                  css = {
-                    noResultsStyle
-                  }
-                >
-                  No results found
-                </div>
-              </li>
-            </ul>
-          );
-
-        default:
-          return (
-            <TypeaheadMenu
-              {
-                ...menuProps
-              }
-              options = {
-                results
-              }
-              labelKey = 'title'
-            />
-          );
-      }
-    })();
+    return (!results?.length)
+      ? null
+      : (
+        <TypeaheadMenu
+          {
+            ...menuProps
+          }
+          options = {
+            results
+          }
+          labelKey = 'title'
+        />
+      );
   };
 
   const menuItemChildrenRender = (
@@ -389,8 +333,11 @@ const MovieSearch = () => {
             isLoading = {
               loading
             }
+            delay = {
+              700
+            }
             onSearch = {
-              movieSearchDelay
+              movieSearch
             }
             filterBy = {
               resultsFilter

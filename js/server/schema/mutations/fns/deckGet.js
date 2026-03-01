@@ -125,7 +125,13 @@ const deckPostProcessedGet = async (
     db
   )
     .catch(
-      () => {
+      (error) => {
+
+        // eslint-disable-next-line no-console
+        console.error(
+          'deckActorImageIdsAssignedGet error:',
+          error
+        );
 
         return (
           deck

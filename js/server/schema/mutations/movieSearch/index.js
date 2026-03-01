@@ -2,7 +2,8 @@
 
 import nodeFetch from 'node-fetch';
 
-const WIKIDATA_SPARQL_URL = 'https://query.wikidata.org/sparql';
+const MEDIAWIKI_API_URL =
+  'https://en.wikipedia.org/w/api.php';
 
 const FEATURED_COLLECTION = [
   { title: 'The Dark Knight', snippet: '', year: '2008', poster: null, rating: null },
@@ -15,81 +16,123 @@ const FEATURED_COLLECTION = [
   { title: 'Pulp Fiction', snippet: '', year: '1994', poster: null, rating: null }
 ];
 
-const sparqlQueryGet = (title, limit) =>
-  `SELECT ?film ?filmLabel ?year ?image ?articleName WHERE {
-  ?film wdt:P31 wd:Q11424 .
-  ?film rdfs:label ?label .
-  FILTER(LANG(?label) = "en")
-  FILTER(CONTAINS(LCASE(?label), LCASE("${title}")))
-  OPTIONAL { ?film wdt:P577 ?pubDate }
-  OPTIONAL { ?film wdt:P18 ?image }
-  OPTIONAL {
-    ?sitelink schema:about ?film .
-    ?sitelink schema:isPartOf <https://en.wikipedia.org/> .
-    ?sitelink schema:name ?articleName .
-  }
-  BIND(YEAR(?pubDate) AS ?year)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
-}
-ORDER BY DESC(?year)
-LIMIT ${limit}`;
+const EXCLUDE_PATTERN =
+  /\(disambiguation\)|\bfilmography\b|\blist of\b/i;
 
-const posterUrlGet = (imageUri) => {
+const htmlStripGet = (
+  html
+) => html.replace(
+  /<[^>]*>/g,
+  ''
+);
 
-  const filename = decodeURIComponent(
-    imageUri.split('/').pop()
+const yearExtractGet = (
+  title,
+  snippet
+) => {
+
+  const titleMatch = title.match(
+    /\((\d{4})\s+film\)/
   );
 
-  return `https://commons.wikimedia.org/wiki/Special:FilePath/${
-    encodeURIComponent(filename)
-  }?width=92`;
+  return titleMatch
+    ? titleMatch[1]
+    : (() => {
+
+      const snippetMatch = snippet.match(
+        /\b((?:19|20)\d{2})\b/
+      );
+
+      return snippetMatch
+        ? snippetMatch[1]
+        : null;
+    })();
 };
 
-const resultGet = (binding) => ({
-  title: binding.articleName?.value || binding.filmLabel?.value || '',
-  snippet: '',
-  year: binding.year?.value || null,
-  poster: binding.image?.value
-    ? posterUrlGet(binding.image.value)
-    : null,
-  rating: null
-});
+const titleCleanGet = (
+  title
+) => title.replace(
+  /\s*\(\d{4}\s+film\)\s*$/,
+  ''
+).replace(
+  /\s*\(film\)\s*$/,
+  ''
+);
+
+const resultGet = (
+  entry
+) => {
+
+  const snippet = htmlStripGet(
+    entry.snippet || ''
+  );
+
+  const year = yearExtractGet(
+    entry.title,
+    snippet
+  );
+
+  return ({
+    title: titleCleanGet(
+      entry.title
+    ),
+    snippet,
+    year,
+    poster: null,
+    rating: null
+  });
+};
+
+const resultFilmFilterGet = (
+  entry
+) => !EXCLUDE_PATTERN.test(entry.title);
 
 export default async (
   text,
-  limit = 5
+  limit = 8
 ) => {
 
   return (!text)
     ? FEATURED_COLLECTION
     : await (async () => {
 
-  const query = sparqlQueryGet(text, limit);
+      const url = `${
+        MEDIAWIKI_API_URL
+      }?action=query&list=search&srsearch=${
+        encodeURIComponent(
+          `${text} hastemplate:"Infobox film"`
+        )
+      }&format=json&srlimit=${
+        limit
+      }&srprop=snippet`;
 
-  const url = `${WIKIDATA_SPARQL_URL}?query=${
-    encodeURIComponent(query)
-  }&format=json`;
+      const res = await nodeFetch(
+        url,
+        {
+          headers: {
+            'User-Agent':
+              'LWD-Demo-Bot (pyratin@gmail.com)'
+          },
+          timeout: 5000
+        }
+      );
 
-  const res = await nodeFetch(url, {
-    headers: {
-      'User-Agent': 'LWD-Demo-Bot (pyratin@gmail.com)',
-      'Accept': 'application/sparql-results+json'
-    },
-    timeout: 15000
-  });
+      return (!res.ok)
+        ? []
+        : await (async () => {
 
-  return (!res.ok)
-    ? []
-    : await (async () => {
+          const json = await res.json();
 
-      const json = await res.json();
+          const searchCollection =
+            json?.query?.search || [];
 
-      const bindingCollection = json?.results?.bindings || [];
-
-      return bindingCollection
-        .filter((b) => b.articleName?.value)
-        .map(resultGet);
-    })();
-
+          return searchCollection
+            .filter(
+              resultFilmFilterGet
+            )
+            .map(
+              resultGet
+            );
+        })();
     })();
 };

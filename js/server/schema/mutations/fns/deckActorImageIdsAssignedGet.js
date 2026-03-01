@@ -14,7 +14,8 @@ import {
   actorsFind as actorsFindFn
 } from '~/js/server/data/actor';
 import {
-  actorImagesFind
+  actorImagesFind,
+  actorImageFindOne
 } from '~/js/server/data/actorImage';
 
 const shuffledGet = (
@@ -132,7 +133,7 @@ const spoofActorWeightAssignedGetFn = async (
     ) => {
 
       if (
-        _spoofActorsPrevious._id.toString() ===
+        _spoofActorsPrevious?._id?.toString() ===
         spoofActor._id.toString()
       ) {
 
@@ -822,7 +823,10 @@ const cardCharactersActorImageIdAssignedGetFn = async (
     {
       _actorId: new ObjectID(
         cardCharacter._actor._id
-      )
+      ),
+      _type: {
+        $ne: 'closeup'
+      }
     },
     {
       projection: {
@@ -1001,6 +1005,82 @@ const charactersActorImageIdAssignedGet = (
   );
 };
 
+const charactersCloseupImageAssignedGet = (
+  characters,
+  charactersWithActor,
+  db
+) => {
+
+  return characters.reduce(
+    (
+      memo,
+      character
+    ) => {
+
+      return memo.then(
+        (
+          res
+        ) => {
+
+          const enriched = charactersWithActor.find(
+            (
+              c
+            ) => {
+
+              return (
+                c.starringIndex ===
+                character.starringIndex &&
+                c._actor
+              );
+            }
+          );
+
+          return (!enriched)
+            ? [
+              ...res,
+              character
+            ]
+            : actorImageFindOne(
+              {
+                _actorId: new ObjectID(
+                  enriched._actor._id
+                ),
+                _type: 'closeup'
+              },
+              {
+                projection: {
+                  _id: 1
+                },
+                sort: {}
+              },
+              db
+            )
+              .then(
+                (
+                  closeupImage
+                ) => {
+
+                  return [
+                    ...res,
+                    (closeupImage)
+                      ? {
+                        ...character,
+                        actorImageId: closeupImage._id
+                          .toString()
+                      }
+                      : character
+                  ];
+                }
+              );
+        }
+      );
+    },
+    Promise.resolve(
+      []
+    )
+  );
+};
+
 export default async (
   deck,
   genre,
@@ -1022,11 +1102,13 @@ export default async (
     spoofActors
   );
 
+  const _charactersWithActor = characters;
+
   let cardCharacters = cardCharactersGet(
     characters
   );
 
-  cardCharacters = 
+  cardCharacters =
   await cardCharactersActorImageIdAssignedGet(
     cardCharacters,
     db
@@ -1035,11 +1117,17 @@ export default async (
   const cards = cardsCharacterAssignedGet(
     deck.cards,
     cardCharacters
-  ); 
+  );
 
   characters = charactersActorImageIdAssignedGet(
     deck.splash.characters,
     cardCharacters
+  );
+
+  characters = await charactersCloseupImageAssignedGet(
+    characters,
+    _charactersWithActor,
+    db
   );
 
   return {

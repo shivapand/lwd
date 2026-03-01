@@ -27,8 +27,7 @@ const Splash = (
         css = {
           css(
             {
-              position: 'absolute',
-              zIndex: 1
+              marginBottom: 10
             }
           )
         }
@@ -67,11 +66,7 @@ const Splash = (
         css = {
           css(
             {
-              position: 'absolute',
-              zIndex: 1,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              width: '100%',
               fontFamily: 'inherit',
               fontSize: props.textFontSize,
               minHeight: props.textElementMinHeight,
@@ -122,7 +117,22 @@ const Splash = (
     <div
       className = 'Splash w-100 h-100 bg-dark'
     >
-      <div>
+      <div
+        css = {
+          css(
+            {
+              position: 'absolute',
+              zIndex: 1,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }
+          )
+        }
+      >
         {
           splashCharactersRender()
         }

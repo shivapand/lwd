@@ -1,54 +1,14 @@
 'use strict';
 
-import cheerio from 'cheerio';
 import mediawikiFetch from './mediawikiFetch';
-import movieDataBasicCastGet from './movieDataBasicCastGet';
 import geminiFetch from './geminiFetch';
 
 const PLACEHOLDER_POSTER =
   'https://via.placeholder.com/320x480?text=No+Poster';
 
-const CAST_SECTION_NAMES = [
-  'cast',
-  'cast and characters',
-  'main cast',
-  'cast and crew'
-];
-
-const NON_CHARACTER_NAMES = [
-  'self',
-  'himself',
-  'herself',
-  'themselves',
-  'narrator',
-  'uncredited',
-  'extra',
-  'background'
-];
-
-const nonCharacterFlag = (name) =>
-  NON_CHARACTER_NAMES.find(
-    (nc) => name.toLowerCase().includes(nc)
-  ) || !name.length;
-
 const posterSummaryUrlGet = (title) =>
   `https://en.wikipedia.org/api/rest_v1/page/summary/${
     encodeURIComponent(title)
-  }`;
-
-const sectionsQueryGet = (title) =>
-  `https://en.wikipedia.org/w/api.php?action=parse&page=${
-    encodeURIComponent(title)
-  }&prop=sections&redirects=1&format=json&origin=*`;
-
-const sectionTextQueryGet = (title, sectionIndex) =>
-  `https://en.wikipedia.org/w/api.php?action=parse&page=${
-    encodeURIComponent(title)
-  }&prop=text&section=${sectionIndex}&redirects=1&format=json&origin=*`;
-
-const actorSummaryUrlGet = (ud) =>
-  `https://en.wikipedia.org/api/rest_v1/page/summary/${
-    encodeURIComponent(ud)
   }`;
 
 const posterGet = async (title) => {
@@ -60,183 +20,24 @@ const posterGet = async (title) => {
   return res?.thumbnail?.source || PLACEHOLDER_POSTER;
 };
 
-const castSectionIndexGet = (sections) =>
-  sections.reduce(
-    (memo, section) =>
-      memo ?? (
-        CAST_SECTION_NAMES.find(
-          (name) => section.line.toLowerCase() === name
-        )
-          ? Number(section.index)
-          : null
-      ),
-    null
-  );
-
-const characterNameFromRoleGet = (role, actorName) => {
-
-  const asPattern = new RegExp(
-    `^${actorName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+as\\s+`,
-    'i'
-  );
-
-  const characterNameFull = role.replace(asPattern, '').trim();
-
-  const characterName = characterNameFull
-    .split('/')[0]
-    .replace(/\(.*?\)/g, '')
-    .trim();
-
-  return { characterName, characterNameFull };
-};
-
-const genderFromTextGet = (text) => {
-
-  switch (true) {
-
-    case !!text.match(/actress/i):
-      return 'woman';
-
-    case !!text.match(/(actor|comedian)/i):
-      return 'man';
-
-    default:
-      return 'unknown';
-  }
-};
-
-const actorEnrichedGet = async (actor) => {
-
-  return (!actor.ud)
-    ? { gender: 'unknown', profileImage: null }
-    : await (async () => {
-
-      const res = await mediawikiFetch(
-        actorSummaryUrlGet(actor.ud)
-      );
-
-      return (!res)
-        ? { gender: 'unknown', profileImage: null }
-        : (() => {
-
-          const extract = res.extract || '';
-
-          const gender = genderFromTextGet(extract);
-
-          const profileImage = res.thumbnail?.source || null;
-
-          return { gender, profileImage };
-        })();
-    })();
-};
-
-const castEnrichedGet = async (rawCast) => {
-
-  const enrichedCollection = await Promise.all(
-    rawCast.map(
-      async ({ actor, role }) => {
-
-        const { characterName, characterNameFull } =
-          characterNameFromRoleGet(role, actor.text);
-
-        return (nonCharacterFlag(characterName))
-          ? null
-          : await (async () => {
-
-            const { gender, profileImage } = await actorEnrichedGet(actor);
-
-            return {
-              actor: {
-                text: actor.text,
-                ud: actor.ud,
-                gender
-              },
-              characterName,
-              characterNameFull,
-              profileImage,
-              role
-            };
-          })();
-      }
-    )
-  );
-
-  return enrichedCollection.filter(Boolean);
-};
-
-const PLOT_SECTION_NAMES = [
-  'plot',
-  'synopsis',
-  'premise',
-  'plot summary',
-  'story'
-];
-
-const plotSectionIndexGet = (sections) =>
-  sections.reduce(
-    (memo, section) =>
-      memo ?? (
-        PLOT_SECTION_NAMES.find(
-          (name) => section.line.toLowerCase() === name
-        )
-          ? Number(section.index)
-          : null
-      ),
-    null
-  );
-
-const rawPlotTextGet = async (title) => {
-
-  const sectionsJson = await mediawikiFetch(
-    sectionsQueryGet(title)
-  );
-
-  const sections = sectionsJson?.parse?.sections;
-
-  return (!sections)
-    ? null
-    : await (async () => {
-
-      const sectionIndex = plotSectionIndexGet(sections);
-
-      return (sectionIndex === null)
-        ? null
-        : await (async () => {
-
-          const sectionJson = await mediawikiFetch(
-            sectionTextQueryGet(title, sectionIndex)
-          );
-
-          const html = sectionJson?.parse?.text?.['*'];
-
-          return (!html)
-            ? null
-            : (() => {
-
-              const $ = cheerio.load(html);
-
-              $('span.mw-reflink-text, sup').remove();
-
-              return $('p')
-                .toArray()
-                .map((p) => $(p).text().trim())
-                .filter((text) => text.length > 0)
-                .join(' ');
-            })();
-        })();
-    })();
-};
-
-const geminiPromptGet = (rawPlotText, castNames, plotLimit) =>
-  `Retell this movie plot in a funny, witty, slightly sarcastic tone — like a friend roasting the plot over drinks. Use humor: sarcasm, understatement, absurd observations.
+const groqPromptGet = (title, plotLimit) =>
+  `You are a movie expert. For the movie "${title}", provide the main cast and a funny plot retelling.
 
 Return JSON:
 {
+  "cast": [
+    { "actor": "Leonardo DiCaprio", "character": "Dom Cobb" }
+  ],
   "sentences": [
-    [{"text": "Neo", "role": "hero"}, {"text": " takes the red pill like a total drama queen."}],
-    [{"text": "Agent Smith", "role": "villain"}, {"text": " really needs a hobby besides cloning."}]
+    [{"text": "Dom", "role": "hero"}, {"text": " steals dreams like WiFi."}]
   ]
 }
+
+Cast rules:
+- Include the main cast members (up to 15)
+- "actor" is the real actor's full name
+- "character" is the character's full name
+- Order by billing/importance
 
 Token rules:
 - Each sentence is an array of tokens (objects with "text" and optionally "role")
@@ -254,10 +55,27 @@ Sentence rules:
 - Exactly ${plotLimit} sentences, chronological order
 - Max 75 characters per sentence (total of all token texts joined)
 - Every sentence must mention at least one character by name
-- Be cheeky, entertaining, and genuinely funny
+- Be cheeky, entertaining, and genuinely funny — like a friend roasting the plot over drinks
+- Use humor: sarcasm, understatement, absurd observations`;
 
-Cast: ${castNames}
-Plot: ${rawPlotText}`;
+const castFromGroqGet = (groqCast) =>
+  groqCast.reduce(
+    (memo, { actor, character }) => [
+      ...memo,
+      {
+        actor: {
+          text: actor,
+          ud: null,
+          gender: 'unknown'
+        },
+        characterName: character,
+        characterNameFull: character,
+        profileImage: null,
+        role: `${actor} as ${character}`
+      }
+    ],
+    []
+  );
 
 const castMemberMatchFromNameGet = (name, cast) =>
   (!name)
@@ -321,91 +139,37 @@ const roleNameFromSentencesGet = (sentences, role) =>
     null
   );
 
-const geminiPlotAndRolesGet = async (rawPlotText, cast, plotLimit) => {
-
-  const castNames = cast
-    .map(({ characterName, actor }) =>
-      `${characterName} (${actor.text})`
-    )
-    .join(', ');
-
-  const prompt = geminiPromptGet(rawPlotText, castNames, plotLimit);
-
-  const result = await geminiFetch(prompt)
-    .catch(() => null);
-
-  return (!result?.sentences?.length)
-    ? null
-    : {
-      plot: result.sentences.map(
-        (tokens, sentenceIndex) => ({
-          text: tokensTextJoinedGet(tokens),
-          tokens,
-          sentenceIndex
-        })
-      ),
-      roles: {
-        hero: roleNameFromSentencesGet(result.sentences, 'hero'),
-        heroine: roleNameFromSentencesGet(result.sentences, 'heroine'),
-        villain: roleNameFromSentencesGet(result.sentences, 'villain')
-      }
-    };
-};
-
-const castGet = async (title) => {
-
-  const sectionsJson = await mediawikiFetch(
-    sectionsQueryGet(title)
-  );
-
-  const sections = sectionsJson?.parse?.sections;
-
-  return (!sections)
-    ? null
-    : await (async () => {
-
-      const sectionIndex = castSectionIndexGet(sections);
-
-      return (sectionIndex === null)
-        ? null
-        : await (async () => {
-
-          const sectionJson = await mediawikiFetch(
-            sectionTextQueryGet(title, sectionIndex)
-          );
-
-          const html = sectionJson?.parse?.text?.['*'];
-
-          const rawCast = (!html)
-            ? null
-            : movieDataBasicCastGet(html);
-
-          return (!rawCast?.length)
-            ? null
-            : await castEnrichedGet(rawCast);
-        })();
-    })();
-};
-
 export default async (title, plotLimit) => {
 
-  const [poster, cast, rawPlotText] = await Promise.all([
+  const [poster, groqResult] = await Promise.all([
     posterGet(title),
-    castGet(title),
-    rawPlotTextGet(title)
+    geminiFetch(groqPromptGet(title, plotLimit))
+      .catch(() => null)
   ]);
 
-  const geminiResult = (!cast?.length || !rawPlotText)
+  return (!groqResult?.cast?.length || !groqResult?.sentences?.length)
     ? null
-    : await geminiPlotAndRolesGet(rawPlotText, cast, plotLimit)
-      .catch(() => null);
+    : (() => {
 
-  return (!geminiResult)
-    ? null
-    : {
-      title,
-      poster,
-      cast: castWithRolesGet(cast, geminiResult.roles),
-      plot: geminiResult.plot
-    };
+      const cast = castFromGroqGet(groqResult.cast);
+
+      const roles = {
+        hero: roleNameFromSentencesGet(groqResult.sentences, 'hero'),
+        heroine: roleNameFromSentencesGet(groqResult.sentences, 'heroine'),
+        villain: roleNameFromSentencesGet(groqResult.sentences, 'villain')
+      };
+
+      return {
+        title,
+        poster,
+        cast: castWithRolesGet(cast, roles),
+        plot: groqResult.sentences.map(
+          (tokens, sentenceIndex) => ({
+            text: tokensTextJoinedGet(tokens),
+            tokens,
+            sentenceIndex
+          })
+        )
+      };
+    })();
 };
