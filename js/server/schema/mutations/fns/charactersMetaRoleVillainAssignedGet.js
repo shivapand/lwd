@@ -2,6 +2,7 @@
 
 import mediawikiFetch from './mediawikiFetch';
 import cheerio from 'cheerio';
+import wikidataRolesGet from './wikidataRolesGet';
 
 const VILLAIN_KEYWORDS = [
   'antagonist',
@@ -97,14 +98,18 @@ const villainFromWikipediaGet = async (characters, title) => {
     })();
 };
 
-const charactersAssignedGet = (characters, antagonist) =>
+const charactersRolesAssignedGet = (characters, roles) =>
 
   characters.reduce(
     (memo, character) => [
       ...memo,
-      (character.text === antagonist?.text)
+      (character.text === roles.villain?.text)
         ? { ...character, role: 'villain' }
-        : character
+        : (character.text === roles.hero?.text)
+          ? { ...character, role: 'hero' }
+          : (character.text === roles.heroine?.text)
+            ? { ...character, role: 'heroine' }
+            : character
     ],
     []
   );
@@ -114,15 +119,29 @@ export default async (
   title
 ) => {
 
-  const antagonist = await villainFromWikipediaGet(
+  const wikidataRoles = await wikidataRolesGet(
     _characters,
     title
   )
-    .catch(() => null);
+    .catch(() => ({ hero: null, villain: null, heroine: null }));
 
-  const characters = charactersAssignedGet(
+  const villainFallback = (!wikidataRoles.villain)
+    ? await villainFromWikipediaGet(
+      _characters,
+      title
+    )
+      .catch(() => null)
+    : null;
+
+  const roles = {
+    hero: wikidataRoles.hero,
+    heroine: wikidataRoles.heroine,
+    villain: wikidataRoles.villain || villainFallback
+  };
+
+  const characters = charactersRolesAssignedGet(
     _characters,
-    antagonist
+    roles
   );
 
   return characters;

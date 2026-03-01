@@ -131,7 +131,11 @@ const charactersMetaHeroineAssignedGet = (
   characters
 ) => {
 
-  const match = characters.find(
+  const existingHeroine = characters.find(
+    (character) => character.role === 'heroine'
+  );
+
+  const match = existingHeroine || characters.find(
     (
       character
     ) => {
@@ -149,13 +153,11 @@ const charactersMetaHeroineAssignedGet = (
     }
   );
 
-  if (
-    match
-  ) {
-
-    return [
+  return (!match)
+    ? characters
+    : [
       ...characters.slice(
-        0, 
+        0,
         match.starringIndex
       ),
       {
@@ -167,11 +169,6 @@ const charactersMetaHeroineAssignedGet = (
         1
       )
     ];
-  }
-
-  return (
-    characters
-  );
 };
 
 const characterGroupsGet = (
@@ -250,10 +247,13 @@ const characterGroupsOrderedGet = (
         ) => {
 
           return (
-            !character.castIndex &&
+            character.role === 'hero' ||
             (
-              character.actor.gender ===
-              'man'
+              !character.castIndex &&
+              (
+                character.actor.gender ===
+                'man'
+              )
             )
           );
         }
