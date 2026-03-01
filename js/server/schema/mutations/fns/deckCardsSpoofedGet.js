@@ -237,9 +237,10 @@ const tokensSpoofedGet = (
             const match = characters.find(
               (c) => {
 
-                const variants = characterNameVariantsGet(c);
+                const nameMatch = c._text &&
+                  wordBoundaryMatchFlagGet(token.text, c._text);
 
-                return variants.find(
+                return nameMatch || characterNameVariantsGet(c).find(
                   (v) => wordBoundaryMatchFlagGet(token.text, v)
                 );
               }

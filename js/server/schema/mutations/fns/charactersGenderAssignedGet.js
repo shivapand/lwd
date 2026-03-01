@@ -13,7 +13,7 @@ export default async (
         ...memo,
         {
           ...character,
-          role: gender,
+          role: character.role || gender,
           actor: {
             ...character.actor,
             gender

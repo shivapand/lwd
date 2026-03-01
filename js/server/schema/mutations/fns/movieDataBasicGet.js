@@ -241,7 +241,13 @@ Return JSON:
 Token rules:
 - Each sentence is an array of tokens (objects with "text" and optionally "role")
 - Character name tokens MUST have "role": exactly one of "hero", "heroine", "villain", or "other"
-- IMPORTANT: only ONE character is the "hero" (main male protagonist), ONE is "heroine" (main female lead), ONE is "villain" (main antagonist) — all other characters use "other"
+- CRITICAL CONSTRAINT — role uniqueness:
+  * Pick exactly ONE character as "hero" (the main male protagonist)
+  * Pick exactly ONE character as "heroine" (the main female lead)
+  * Pick exactly ONE character as "villain" (the main antagonist)
+  * Every single other character MUST use "other" — no exceptions
+  * A character's role is FIXED: if Dom is "hero" in sentence 1, he is "hero" in ALL sentences. No other character may ever be "hero".
+  * This means across the ENTIRE response, only 3 distinct character names have non-"other" roles
 - Non-character tokens only have "text" and MUST include leading/trailing spaces for proper spacing (e.g. " does something " not "does something")
 
 Sentence rules:
