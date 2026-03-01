@@ -4,6 +4,17 @@ import nodeFetch from 'node-fetch';
 
 const WIKIDATA_SPARQL_URL = 'https://query.wikidata.org/sparql';
 
+const FEATURED_COLLECTION = [
+  { title: 'The Dark Knight', snippet: '', year: '2008', poster: null, rating: null },
+  { title: 'The Matrix', snippet: '', year: '1999', poster: null, rating: null },
+  { title: 'Inception', snippet: '', year: '2010', poster: null, rating: null },
+  { title: 'Gladiator', snippet: '', year: '2000', poster: null, rating: null },
+  { title: 'Interstellar', snippet: '', year: '2014', poster: null, rating: null },
+  { title: 'Kill Bill: Volume 1', snippet: '', year: '2003', poster: null, rating: null },
+  { title: 'The Godfather', snippet: '', year: '1972', poster: null, rating: null },
+  { title: 'Pulp Fiction', snippet: '', year: '1994', poster: null, rating: null }
+];
+
 const sparqlQueryGet = (title, limit) =>
   `SELECT ?film ?filmLabel ?year ?image ?articleName WHERE {
   ?film wdt:P31 wd:Q11424 .
@@ -49,6 +60,10 @@ export default async (
   limit = 5
 ) => {
 
+  return (!text)
+    ? FEATURED_COLLECTION
+    : await (async () => {
+
   const query = sparqlQueryGet(text, limit);
 
   const url = `${WIKIDATA_SPARQL_URL}?query=${
@@ -72,5 +87,7 @@ export default async (
       const bindingCollection = json?.results?.bindings || [];
 
       return bindingCollection.map(resultGet);
+    })();
+
     })();
 };

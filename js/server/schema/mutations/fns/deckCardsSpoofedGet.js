@@ -220,6 +220,39 @@ const cardMatchesGet = (
   );
 };
 
+const tokensSpoofedGet = (
+  tokens,
+  characters
+) => {
+
+  return (!tokens)
+    ? undefined
+    : tokens.map(
+      (token) => {
+
+        return (!token.role)
+          ? token
+          : (() => {
+
+            const match = characters.find(
+              (c) => {
+
+                const variants = characterNameVariantsGet(c);
+
+                return variants.find(
+                  (v) => wordBoundaryMatchFlagGet(token.text, v)
+                );
+              }
+            );
+
+            return (!match)
+              ? token
+              : { ...token, text: match.text };
+          })();
+      }
+    );
+};
+
 const cardsSpoofedGetFn = (
   _card,
   characters
@@ -283,8 +316,14 @@ const cardsSpoofedGetFn = (
     }
   );
 
+  const tokens = tokensSpoofedGet(
+    _card.tokens,
+    characters
+  );
+
   return {
     ...card,
+    ...(tokens ? { tokens } : {}),
     _text: baseText
   };
 };

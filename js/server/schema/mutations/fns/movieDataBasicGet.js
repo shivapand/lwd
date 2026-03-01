@@ -228,28 +228,92 @@ const rawPlotTextGet = async (title) => {
 };
 
 const geminiPromptGet = (rawPlotText, castNames, plotLimit) =>
-  `Analyze this movie plot. Return JSON with this exact structure:
+  `Retell this movie plot in a funny, witty, slightly sarcastic tone — like a friend roasting the plot over drinks. Use humor: sarcasm, understatement, absurd observations.
+
+Return JSON:
 {
-  "sentences": ["...", "..."],
-  "hero": "CharacterName or null",
-  "heroine": "CharacterName or null",
-  "villain": "CharacterName or null"
+  "sentences": [
+    [{"text": "Neo", "role": "hero"}, {"text": " takes the red pill like a total drama queen."}],
+    [{"text": "Agent Smith", "role": "villain"}, {"text": " really needs a hobby besides cloning."}]
+  ]
 }
 
-Rules for sentences:
-- Exactly ${plotLimit} short sentences (max 75 characters each)
-- Tell the story in chronological order
-- Use character first names from the cast list
-- Each sentence should be a complete thought
+Token rules:
+- Each sentence is an array of tokens (objects with "text" and optionally "role")
+- Character name tokens MUST have "role": exactly one of "hero", "heroine", "villain", or "other"
+- IMPORTANT: only ONE character is the "hero" (main male protagonist), ONE is "heroine" (main female lead), ONE is "villain" (main antagonist) — all other characters use "other"
+- Non-character tokens only have "text" and MUST include leading/trailing spaces for proper spacing (e.g. " does something " not "does something")
 
-Rules for roles:
-- hero: the main male protagonist from the cast list, or null
-- heroine: the main female lead from the cast list, or null
-- villain: the main antagonist from the cast list, or null
-- Use the character names exactly as they appear in the cast list
+Sentence rules:
+- Exactly ${plotLimit} sentences, chronological order
+- Max 75 characters per sentence (total of all token texts joined)
+- Every sentence must mention at least one character by name
+- Be cheeky, entertaining, and genuinely funny
 
 Cast: ${castNames}
 Plot: ${rawPlotText}`;
+
+const castMemberMatchFromNameGet = (name, cast) =>
+  (!name)
+    ? null
+    : cast.find(
+      (member) => {
+
+        const lowerName = name.toLowerCase();
+
+        return [
+          member.characterName,
+          member.characterNameFull
+        ]
+          .filter(Boolean)
+          .find(
+            (variant) =>
+              variant.toLowerCase().includes(lowerName) ||
+              lowerName.includes(variant.toLowerCase())
+          );
+      }
+    );
+
+const castWithRolesGet = (cast, roles) => {
+
+  const heroMember = castMemberMatchFromNameGet(roles.hero, cast);
+  const heroineMember = castMemberMatchFromNameGet(roles.heroine, cast);
+  const villainMember = castMemberMatchFromNameGet(roles.villain, cast);
+
+  return cast.reduce(
+    (memo, member) => [
+      ...memo,
+      (member === heroMember)
+        ? { ...member, castRole: 'hero' }
+        : (member === heroineMember)
+          ? { ...member, castRole: 'heroine' }
+          : (member === villainMember)
+            ? { ...member, castRole: 'villain' }
+            : member
+    ],
+    []
+  );
+};
+
+const tokensTextJoinedGet = (tokens) =>
+  tokens.reduce(
+    (memo, t) => {
+
+      const needsSpace = memo.length > 0 &&
+        !memo.endsWith(' ') &&
+        !t.text.startsWith(' ');
+
+      return `${memo}${needsSpace ? ' ' : ''}${t.text}`;
+    },
+    ''
+  );
+
+const roleNameFromSentencesGet = (sentences, role) =>
+  sentences.reduce(
+    (memo, tokens) =>
+      memo || (tokens.find((t) => t.role === role)?.text || null),
+    null
+  );
 
 const geminiPlotAndRolesGet = async (rawPlotText, cast, plotLimit) => {
 
@@ -268,12 +332,16 @@ const geminiPlotAndRolesGet = async (rawPlotText, cast, plotLimit) => {
     ? null
     : {
       plot: result.sentences.map(
-        (text, sentenceIndex) => ({ text, sentenceIndex })
+        (tokens, sentenceIndex) => ({
+          text: tokensTextJoinedGet(tokens),
+          tokens,
+          sentenceIndex
+        })
       ),
       roles: {
-        hero: result.hero || null,
-        heroine: result.heroine || null,
-        villain: result.villain || null
+        hero: roleNameFromSentencesGet(result.sentences, 'hero'),
+        heroine: roleNameFromSentencesGet(result.sentences, 'heroine'),
+        villain: roleNameFromSentencesGet(result.sentences, 'villain')
       }
     };
 };
@@ -330,8 +398,7 @@ export default async (title, plotLimit) => {
     : {
       title,
       poster,
-      cast,
-      plot: geminiResult.plot,
-      roles: geminiResult.roles
+      cast: castWithRolesGet(cast, geminiResult.roles),
+      plot: geminiResult.plot
     };
 };

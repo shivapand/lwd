@@ -2,35 +2,36 @@
 
 import nodeFetch from 'node-fetch';
 
-const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const geminiFetch = async (prompt) => {
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
-  const apiKey = process.env.GEMINI_API_KEY;
+const groqFetch = async (prompt) => {
+
+  const apiKey = process.env.GROQ_API_KEY;
 
   return (!apiKey)
     ? null
     : await (async () => {
 
       const res = await nodeFetch(
-        `${GEMINI_URL}?key=${apiKey}`,
+        GROQ_URL,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            contents: [
+            model: GROQ_MODEL,
+            messages: [
               {
-                parts: [
-                  { text: prompt }
-                ]
+                role: 'user',
+                content: prompt
               }
             ],
-            generationConfig: {
-              responseMimeType: 'application/json'
-            }
+            response_format: { type: 'json_object' },
+            temperature: 0.3
           }),
           timeout: 30000
         }
@@ -42,13 +43,15 @@ const geminiFetch = async (prompt) => {
 
           const json = await res.json();
 
-          const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const text = json?.choices?.[0]?.message?.content;
 
-          return (!text)
+          const parsed = (!text)
             ? null
             : JSON.parse(text);
+
+          return parsed;
         })();
     })();
 };
 
-export default geminiFetch;
+export default groqFetch;

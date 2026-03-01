@@ -645,16 +645,12 @@ const charactersGet = (
 };
 
 const charactersRoleAssignedGet = async (
-  _characters,
-  title,
-  roles
+  _characters
 ) => {
 
   let characters =
   await charactersMetaRoleVillainAssignedGet(
-    _characters,
-    title,
-    roles
+    _characters
   );
 
   characters = charactersMetaHeroineAssignedGet(
@@ -683,9 +679,7 @@ const charactersRoleAssignedGet = async (
 };
 
 export default async (
-  _characters,
-  title,
-  roles
+  _characters
 ) => {
 
   let characters = charactersRoleMatchIndexAssignedGet(
@@ -693,9 +687,7 @@ export default async (
   );
 
   characters = await charactersRoleAssignedGet(
-    characters,
-    title,
-    roles
+    characters
   );
 
   return (

@@ -146,7 +146,7 @@ const DeckNode = (
           {
             [
               splashRender(),
-              ...cardsRender()
+              ...(cardsRender() || [])
             ]
               .reduce(
                 (

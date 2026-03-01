@@ -245,40 +245,27 @@ const charactersRenderDetailAssignedGet = (
 const cardTextGet = (
   {
     text: _text,
-    character
+    tokens
   }
 ) => {
 
-  let renderText = _text;
+  return (!tokens)
+    ? _text
+    : tokens.reduce(
+      (memo, token) => {
 
-  if (
-    !character
-  ) {
+        const html = (['hero', 'heroine', 'villain'].includes(token.role))
+          ? `<b>${token.text}</b>`
+          : token.text;
 
-    return (
-      renderText
+        const needsSpace = memo.length > 0 &&
+          !memo.endsWith(' ') &&
+          !token.text.startsWith(' ');
+
+        return `${memo}${needsSpace ? ' ' : ''}${html}`;
+      },
+      ''
     );
-  }
-
-  renderText = `
-    ${
-      renderText.slice(
-        0, character.distance
-      )
-    }<b>${
-      character.text
-    }</b>${
-      renderText.slice(
-        character.distance +
-        character.text.length
-      )
-    }
-  `
-    .trim();
-
-  return (
-    renderText
-  );
 };
 
 const cardGet = (

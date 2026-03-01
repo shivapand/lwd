@@ -60,7 +60,11 @@ export default async (
 
       const nameVariants = characterNameVariantsGet(castMember);
 
-      return (castIndex && !characterInPlotFlagGet(nameVariants, plotJoined))
+      return (
+        castIndex &&
+        !castMember.castRole &&
+        !characterInPlotFlagGet(nameVariants, plotJoined)
+      )
         ? memo
         : [
           ...memo,
@@ -69,7 +73,10 @@ export default async (
             characterNameFull: castMember.characterNameFull,
             profileImage: castMember.profileImage,
             actor: castMember.actor,
-            castIndex
+            castIndex,
+            ...(castMember.castRole
+              ? { role: castMember.castRole }
+              : {})
           }
         ];
     },

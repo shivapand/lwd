@@ -541,17 +541,20 @@ export default async (
     db
   );
 
-  output = await outputCreatedGet(
-    {
-      source,
-      ...output
-    },
-    createFlag,
-    db,
-    req
-  );
+  return (!output)
+    ? {}
+    : await (async () => {
 
-  return (
-    output
-  );
+      output = await outputCreatedGet(
+        {
+          source,
+          ...output
+        },
+        createFlag,
+        db,
+        req
+      );
+
+      return output;
+    })();
 };

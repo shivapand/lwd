@@ -240,17 +240,10 @@ const MovieSearch = (
     );
   };
 
-  const onMovieCreateErrorHandle = (
-    json
-  ) => {
+  const onMovieCreateErrorHandle = () => {
 
     return Promise.resolve(
-      JSON.parse(
-        json.errors[
-          0
-        ]
-          .message
-      )
+      loadingSet(false)
     );
   };
 
@@ -259,23 +252,29 @@ const MovieSearch = (
       json
     ) => {
 
-      return Promise.resolve(
-        props.match.router
-          .push(
-            `
-              /Deck/${
-                json.movieCreate.output.splash.title
-              }?genre=${
-                props.match.location.query.genre ||
-                process.env.GENRE
-              }&hero=${
-                props.match.location.query.hero ||
-                process.env.HERO
-              }
-            `
-              .trim()
-          )
-      );
+      const splash = json.movieCreate?.output?.splash;
+
+      return (!splash)
+        ? Promise.resolve(
+          loadingSet(false)
+        )
+        : Promise.resolve(
+          props.match.router
+            .push(
+              `
+                /Deck/${
+                  splash.title
+                }?genre=${
+                  props.match.location.query.genre ||
+                  process.env.GENRE
+                }&hero=${
+                  props.match.location.query.hero ||
+                  process.env.HERO
+                }
+              `
+                .trim()
+            )
+        );
     },
     [
       props.match.router,
@@ -363,16 +362,18 @@ const MovieSearch = (
       );
   };
 
+  const onFocusHandle = () => {
+
+    return !results &&
+      movieSearch('');
+  };
+
   const onInputChangeHandle = (
     text
   ) => {
 
     return !text &&
-      Promise.resolve(
-        resultsSet(
-          null
-        )
-      );
+      movieSearch('');
   };
 
   const menuRender = (
@@ -473,7 +474,7 @@ const MovieSearch = (
               '&#128269; by movie title ...'
             data-key = 'text'
             minLength = {
-              1
+              0
             }
             labelKey = 'title'
             options = {
@@ -494,6 +495,9 @@ const MovieSearch = (
             }
             renderMenuItemChildren = {
               menuItemChildrenRender
+            }
+            onFocus = {
+              onFocusHandle
             }
             onInputChange = {
               onInputChangeHandle
