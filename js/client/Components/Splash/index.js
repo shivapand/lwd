@@ -79,7 +79,7 @@ const Splash = (
 
     return (
       <div
-        className = 'titleContainer text-center'
+        className = 'titleContainer text-center text-white'
         css = {
           css(
             {
@@ -89,7 +89,10 @@ const Splash = (
               right: 0,
               bottom: 0,
               fontFamily: 'Muli',
-              fontSize: props.textFontSize
+              fontSize: props.textFontSize,
+              minHeight: props.textElementMinHeight,
+              padding: '0.5rem',
+              backgroundColor: '#000'
             }
           )
         }
@@ -111,32 +114,23 @@ const Splash = (
           css = {
             css(
               {
-                padding: '0px 8px 0px 8px'
+                width: '3rem',
+                height: '3rem',
+                lineHeight: '3rem',
+                padding: 0
               }
             )
           }
         >
           in
         </div>
-        <p
-          className = {
-            `
-              p-1 m-0 
-              bg-dark text-white
-            `
-          }
-          css = {
-            css(
-              {
-                minHeight: props.textElementMinHeight
-              }
-            )
-          }
+        <div
+          className = 'p-1 m-0'
         >
           {
             props.splash.title
           }
-        </p>
+        </div>
       </div>
     );
   };

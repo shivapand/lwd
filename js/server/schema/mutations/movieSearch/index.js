@@ -11,7 +11,12 @@ export default async (
     `/search/movie?query=${encodeURIComponent(text)}&language=en-US&page=1`
   );
 
+  const MIN_POPULARITY = 5;
+
   const results = (searchJson?.results || [])
+    .filter(
+      ({ popularity }) => popularity >= MIN_POPULARITY
+    )
     .slice(0, limit)
     .map(
       ({ title, overview, poster_path, release_date, vote_average }) => ({

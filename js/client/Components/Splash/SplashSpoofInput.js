@@ -134,8 +134,8 @@ const SplashSpoofInput = (
 
   return (
     <div
-      className = 
-        'SplashSpoofInput d-flex justify-content-center'
+      className =
+        'SplashSpoofInput d-flex justify-content-center pt-2'
     >
       {
         renderFn()

@@ -53,7 +53,7 @@ const SplashCharacter = (
               right: 0,
               bottom: 0,
               fontFamily: 'Muli',
-              fontSize: props.textFontSize
+              fontSize: '1.1rem'
             }
           )
         }

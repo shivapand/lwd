@@ -10,6 +10,10 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 const PLACEHOLDER_POSTER =
   'https://via.placeholder.com/320x480?text=No+Poster';
 
+const MIN_POPULARITY = 5;
+
+const MAX_CANDIDATES = 3;
+
 const NON_CHARACTER_NAMES = [
   'self',
   'himself',
@@ -87,9 +91,52 @@ const overviewPlotGet = (overview, plotLimit) => {
   );
 };
 
-export default async (title, plotLimit) => {
+const candidateResultGet = async (movieResult, plotLimit) => {
 
-  console.log(`movieDataBasicGet start: ${title}`);
+  const detailJson = await tmdbFetch(
+    `/movie/${movieResult.id}?append_to_response=credits&language=en-US`
+  );
+
+  return (!detailJson?.credits)
+    ? null
+    : await (async () => {
+
+      const _title = detailJson.title;
+
+      const poster = detailJson.poster_path
+        ? `${TMDB_IMAGE_BASE}${detailJson.poster_path}`
+        : PLACEHOLDER_POSTER;
+
+      const cast = castGet(detailJson.credits);
+
+      return (!cast.length)
+        ? null
+        : await (async () => {
+
+          const plot = await wikipediaPlotGet(
+            _title,
+            plotLimit
+          );
+
+          const _plot = (plot?.length)
+            ? plot
+            : (detailJson.overview)
+              ? overviewPlotGet(detailJson.overview, plotLimit)
+              : null;
+
+          return (!_plot)
+            ? null
+            : {
+              title: _title,
+              poster,
+              cast,
+              plot: _plot
+            };
+        })();
+    })();
+};
+
+export default async (title, plotLimit) => {
 
   try {
 
@@ -97,76 +144,29 @@ export default async (title, plotLimit) => {
       `/search/movie?query=${encodeURIComponent(title)}&language=en-US&page=1`
     );
 
-    const movieResult = searchJson?.results?.[0];
+    const candidateCollection = (searchJson?.results || [])
+      .filter(
+        ({ popularity }) => popularity >= MIN_POPULARITY
+      )
+      .slice(0, MAX_CANDIDATES);
 
-    return (!movieResult)
-      ? (() => {
+    return (!candidateCollection.length)
+      ? null
+      : await candidateCollection.reduce(
+        async (memoPromise, movieResult) => {
 
-        console.log(`TMDB search returned no results for: ${title}`);
+          const memo = await memoPromise;
 
-        return null;
-      })()
-      : await (async () => {
-
-        const detailJson = await tmdbFetch(
-          `/movie/${movieResult.id}?append_to_response=credits&language=en-US`
-        );
-
-        return (!detailJson?.credits)
-          ? (() => {
-
-            console.log(`TMDB detail fetch failed for: ${title}`);
-
-            return null;
-          })()
-          : await (async () => {
-
-            const _title = detailJson.title;
-
-            const poster = detailJson.poster_path
-              ? `${TMDB_IMAGE_BASE}${detailJson.poster_path}`
-              : PLACEHOLDER_POSTER;
-
-            const cast = castGet(detailJson.credits);
-
-            const plot = await wikipediaPlotGet(
-              _title,
+          return (memo)
+            ? memo
+            : await candidateResultGet(
+              movieResult,
               plotLimit
             );
-
-            const _plot = (plot?.length)
-              ? plot
-              : (detailJson.overview)
-                ? overviewPlotGet(detailJson.overview, plotLimit)
-                : null;
-
-            return (!_plot || !cast.length)
-              ? (() => {
-
-                console.log(
-                  `movieDataBasicGet incomplete for ${_title}. Plot: ${!!_plot}, Cast: ${cast.length}`
-                );
-
-                return null;
-              })()
-              : (() => {
-
-                console.log(
-                  `movieDataBasicGet success for ${_title}. Cast: ${cast.length}, Plot sentences: ${_plot.length}`
-                );
-
-                return {
-                  title: _title,
-                  poster,
-                  cast,
-                  plot: _plot
-                };
-              })();
-          })();
-      })();
+        },
+        Promise.resolve(null)
+      );
   } catch (error) {
-
-    console.log(`movieDataBasicGet error: ${error.message}`);
 
     return null;
   }

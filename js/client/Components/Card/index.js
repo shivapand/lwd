@@ -91,7 +91,7 @@ const Card  = (
 
     return (
       <p
-        className = 'p-1 m-0 text-center text-white bg-dark'
+        className = 'p-1 m-0 text-center text-white'
         css = {
           css(
             {
@@ -102,7 +102,8 @@ const Card  = (
               bottom: 0,
               minHeight: props.textElementMinHeight,
               fontFamily: 'Muli',
-              fontSize: props.textFontSize
+              fontSize: props.textFontSize,
+              backgroundColor: '#000'
             }
           )
         }

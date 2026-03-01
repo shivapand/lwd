@@ -20,7 +20,7 @@ const DeckNode = (
 
   const textElementMinHeight = '6rem';
 
-  const textFontSize = '1.1rem';
+  const textFontSize = '2.2rem';
 
   const splashCharacterElementSize = (
     process.env.OUTPUT_RES /
