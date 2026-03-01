@@ -83,9 +83,14 @@ const resultGet = (
   });
 };
 
-const resultFilmFilterGet = (
-  entry
-) => !EXCLUDE_PATTERN.test(entry.title);
+const resultTitleMatchGet = (
+  entry,
+  text
+) =>
+  !EXCLUDE_PATTERN.test(entry.title) &&
+  entry.title.toLowerCase().includes(
+    text.toLowerCase()
+  );
 
 export default async (
   text,
@@ -102,9 +107,7 @@ export default async (
         encodeURIComponent(
           `${text} hastemplate:"Infobox film"`
         )
-      }&format=json&srlimit=${
-        limit
-      }&srprop=snippet`;
+      }&format=json&srlimit=20&srprop=snippet`;
 
       const res = await nodeFetch(
         url,
@@ -128,11 +131,12 @@ export default async (
 
           return searchCollection
             .filter(
-              resultFilmFilterGet
+              (entry) => resultTitleMatchGet(entry, text)
             )
             .map(
               resultGet
-            );
+            )
+            .slice(0, limit);
         })();
     })();
 };
