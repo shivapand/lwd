@@ -33,18 +33,7 @@ export default async (
     req
   )
     .then(
-      (
-        res
-      ) => {
-
-        if (
-          !res
-        ) {
-
-          return (
-            null
-          );
-        }
+      () => {
 
         return movieCreate(
           deckTitle,
@@ -61,18 +50,6 @@ export default async (
         );
       }
     );
-
-  if (
-    !movie
-  ) {
-
-    return res.status(
-      404
-    )
-      .send(
-        'Deck not found'
-      );
-  }
 
   const imageUrl = movie.url.replace(
     /\s/g,

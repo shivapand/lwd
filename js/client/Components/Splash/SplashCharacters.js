@@ -15,7 +15,42 @@ const SplashCharacters = (
   const charactersRender = () => {
 
     return props.splash.characters
-      ?.map(
+      ?.filter(
+        (
+          character
+        ) => {
+
+          return [
+            'hero',
+            'heroine',
+            'villain'
+          ]
+            .includes(
+              character.role
+            );
+        }
+      )
+      .reduce(
+        (
+          memo,
+          character
+        ) => {
+
+          return (
+            memo.find(
+              (m) =>
+                m.role === character.role
+            )
+          )
+            ? memo
+            : [
+              ...memo,
+              character
+            ];
+        },
+        []
+      )
+      .map(
         (
           character,
           index
@@ -71,6 +106,7 @@ export default createFragmentContainer(
     splash: graphql`
       fragment SplashCharacters_splash on Splash {
         characters {
+          role
           ...SplashCharacter_character
         }
       }

@@ -14,7 +14,8 @@ declare export opaque type SplashCharacters_splash$ref: FragmentReference;
 declare export opaque type SplashCharacters_splash$fragmentType: SplashCharacters_splash$ref;
 export type SplashCharacters_splash = {|
   +characters: ?$ReadOnlyArray<?{|
-    +$fragmentRefs: SplashCharacter_character$ref
+    +role: ?string,
+    +$fragmentRefs: SplashCharacter_character$ref,
   |}>,
   +$refType: SplashCharacters_splash$ref,
 |};
@@ -42,6 +43,13 @@ const node/*: ReaderFragment*/ = {
       "plural": true,
       "selections": [
         {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "role",
+          "storageKey": null
+        },
+        {
           "args": null,
           "kind": "FragmentSpread",
           "name": "SplashCharacter_character"
@@ -54,6 +62,6 @@ const node/*: ReaderFragment*/ = {
   "abstractKey": null
 };
 // prettier-ignore
-(node/*: any*/).hash = '391986ec087de07987ebeaa56af0ecfc';
+(node/*: any*/).hash = '9e5fbc03fa223fda1f43ce6f5cfed910';
 
 module.exports = node;

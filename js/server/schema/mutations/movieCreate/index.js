@@ -440,15 +440,6 @@ const outputGet = async (
     db
   );
 
-  if (
-    !deck
-  ) {
-
-    return (
-      null
-    );
-  }
-
   switch (
     true
   ) {
@@ -544,15 +535,6 @@ export default async (
     plotLimit,
     db
   );
-
-  if (
-    !output
-  ) {
-
-    return (
-      null
-    );
-  }
 
   output = await outputCreatedGet(
     {

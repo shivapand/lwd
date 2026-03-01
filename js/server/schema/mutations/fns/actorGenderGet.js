@@ -10,7 +10,7 @@ const queryGet = (
 ) => {
 
   return `
-    https://en.wikipedia.org/api/rest_v1/page/mobile-sections-lead/${
+    https://en.wikipedia.org/api/rest_v1/page/summary/${
       actorUd
     }
   `
@@ -72,10 +72,7 @@ const textGet = (
   res
 ) => {
 
-  const sectionLeadText = res.sections[
-    0
-  ]
-    .text;
+  const sectionLeadText = res.extract_html;
 
   const $ = cheerio.load(
     sectionLeadText
@@ -129,6 +126,15 @@ export default (
       (
         res
       ) => {
+
+        if (
+          !res
+        ) {
+
+          return (
+            genderUnknown
+          );
+        }
 
         const text = textGet(
           res

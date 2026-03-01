@@ -260,31 +260,22 @@ const MovieSearch = (
     ) => {
 
       return Promise.resolve(
-        asyncTypeaheadRef.current
-          .clear()
-      )
-        .then(
-          () => {
-
-            return Promise.resolve(
-              props.match.router
-                .push(
-                  `
-                    /Deck/${
-                      json.movieCreate.output.splash.title
-                    }?genre=${
-                      props.match.location.query.genre ||
-                      process.env.GENRE
-                    }&hero=${
-                      props.match.location.query.hero ||
-                      process.env.HERO
-                    }
-                  `
-                    .trim()
-                )
-            );
-          }
-        );
+        props.match.router
+          .push(
+            `
+              /Deck/${
+                json.movieCreate.output.splash.title
+              }?genre=${
+                props.match.location.query.genre ||
+                process.env.GENRE
+              }&hero=${
+                props.match.location.query.hero ||
+                process.env.HERO
+              }
+            `
+              .trim()
+          )
+      );
     },
     [
       props.match.router,

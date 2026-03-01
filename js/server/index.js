@@ -1,5 +1,8 @@
 'use strict';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 import path from 'path';
 import express from 'express';
 import expressGraphql from 'express-graphql';
@@ -36,19 +39,23 @@ import schemaUpdate from './fns/schemaUpdate';
 
     const port = portGet();
 
-    const app = express();
+    return express()
 
-    app.set('trust proxy', true);
-    app.set('views', path.join(process.cwd(), 'views'));
-    app.set('view engine', 'ejs');
+      .set(
+        'trust proxy',
+        true
+      )
 
-    return app
+      .set(
+        'view engine',
+        'ejs'
+      )
 
       .get(
         '/favicon.ico',
         (req, res) => res.status(204).end()
       )
-      
+
       .get(
         '/output/:gif.gif',
         (
@@ -91,44 +98,41 @@ import schemaUpdate from './fns/schemaUpdate';
           res
         ) => {
 
-          try {
-            return expressGraphql(
-              {
-                schema,
-                pretty: true,
-                context: {
-                  db,
-                  req
-                }
+          return expressGraphql(
+            {
+              schema,
+              pretty: true,
+              context: {
+                db,
+                req
               }
-            )(
-              req,
-              res
-            );
-          } catch (error) {
-            console.error('GraphQL Error:', error);
-            res.status(500).send(error.message);
-          }
+            }
+          )(
+            req,
+            res
+          );
         }
       )
 
       .get(
         '/deck/:deckTitle',
-        async (
+        (
           req,
-          res
+          res,
+          next
         ) => {
 
-          try {
-            await deckTitleRouteHandle(
-              db,
-              req,
-              res
+          return deckTitleRouteHandle(
+            db,
+            req,
+            res
+          )
+            .catch(
+              () => {
+
+                return next();
+              }
             );
-          } catch (error) {
-            console.error('Route Error:', error);
-            res.status(500).send(`Route Error: ${error.message}`);
-          }
         }
       )
 
@@ -139,43 +143,33 @@ import schemaUpdate from './fns/schemaUpdate';
           res
         ) => {
 
-          try {
-            return res.render(
-              'index',
-              {
-                fbAppId: fbAppIdGet(),
-                title: titleGet(),
-                description: 'just messing ... :D',
-                type: 'article',
-                url: hostUrlGet(
-                  req
-                ),
-                image: {
-                  url: `
-                    ${
-                      hostUrlGet(
-                        req
-                      )
-                    }/root.jpeg
-                  `
-                    .trim(),
-                  type: 'image/jpeg',
-                  width: outputResGet(),
-                  height: outputResGet()
-                }
+          return res.render(
+            'index',
+            {
+              fbAppId: fbAppIdGet(),
+              title: titleGet(),
+              description: 'just messing ... :D',
+              type: 'article',
+              url: hostUrlGet(
+                req
+              ),
+              image: {
+                url: `
+                  ${
+                    hostUrlGet(
+                      req
+                    )
+                  }/root.jpeg
+                `
+                  .trim(),
+                type: 'image/jpeg',
+                width: outputResGet(),
+                height: outputResGet()
               }
-            );
-          } catch (error) {
-            console.error('Catch-all Error:', error);
-            res.status(500).send(`Catch-all Error: ${error.message}`);
-          }
+            }
+          );
         }
       )
-
-      .use((err, req, res, next) => {
-        console.error('Unhandled Error:', err);
-        res.status(500).send(`Unhandled Error: ${err.message}`);
-      })
 
       .listen(
         port,

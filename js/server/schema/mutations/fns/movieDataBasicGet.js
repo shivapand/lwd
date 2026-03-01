@@ -60,6 +60,9 @@ const castGet = (credits) =>
             },
             characterName,
             characterNameFull: member.character || '',
+            profileImage: member.profile_path
+              ? `${TMDB_IMAGE_BASE}${member.profile_path}`
+              : null,
             role: `${member.name} as ${characterName}`
           }
         ];

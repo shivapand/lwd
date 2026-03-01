@@ -21,6 +21,11 @@ export default (
           -1
         )[
           0
+        ]
+        .split(
+          /\?/
+        )[
+          0
         ];
 
       return new MongoClient.connect(

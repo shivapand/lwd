@@ -8,7 +8,7 @@
     "GIFY_API_KEY": "aJT6CDc1W7E5g5S38tj6STaddrUa75Xx",
     "OUTPUT_RES": 320,
     "MONGO_LOCAL_URI": "mongodb://localhost:27017/lwd",
-    "MONGO_REMOTE_URI": "mongodb+srv://pyratin:didi1234@cluster0.9h098.mongodb.net/lwd",
+    "MONGO_REMOTE_URI": "mongodb+srv://pyratin:didi1234@lwd.9mbvglo.mongodb.net/lwd?appName=lwd",
     "GENRE": "public-domain",
     "HERO": "YOU!",
     "FB_APP_ID": "248823225550982",

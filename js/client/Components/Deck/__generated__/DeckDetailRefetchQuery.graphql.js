@@ -115,6 +115,7 @@ fragment SplashCharacter_viewer on Viewer {
 
 fragment SplashCharacters_splash on Splash {
   characters {
+    role
     ...SplashCharacter_character
   }
 }
@@ -196,14 +197,14 @@ v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "renderText",
+  "name": "role",
   "storageKey": null
 },
 v10 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "role",
+  "name": "renderText",
   "storageKey": null
 },
 v11 = {
@@ -367,7 +368,7 @@ return {
                             "plural": true,
                             "selections": [
                               (v12/*: any*/),
-                              (v9/*: any*/),
+                              (v10/*: any*/),
                               {
                                 "alias": null,
                                 "args": null,
@@ -376,7 +377,7 @@ return {
                                 "name": "character",
                                 "plural": false,
                                 "selections": [
-                                  (v10/*: any*/)
+                                  (v9/*: any*/)
                                 ],
                                 "storageKey": null
                               },
@@ -453,12 +454,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "efe99f72e159474fe6622878b994c59c",
+    "cacheID": "0b7c441d8a8f06795bce6a36b1274aae",
     "id": null,
     "metadata": {},
     "name": "DeckDetailRefetchQuery",
     "operationKind": "query",
-    "text": "query DeckDetailRefetchQuery(\n  $deckTitle: String!\n  $spoofInput: spoofInput\n  $genre: String!\n  $refetch: Boolean!\n) {\n  viewer {\n    ...DeckDetail_viewer_3ROcCi\n    id\n  }\n}\n\nfragment Card_card on Card {\n  image\n  renderText\n  character {\n    role\n  }\n  actorImageId\n  dualRoleIndex\n}\n\nfragment Card_viewer on Viewer {\n  id\n}\n\nfragment Carousel_viewer on Viewer {\n  id\n}\n\nfragment DeckDetail_viewer_3ROcCi on Viewer {\n  id\n  decks(first: 1, deckTitle: $deckTitle, spoofInput: $spoofInput, genre: $genre) {\n    edges {\n      node {\n        id\n        ...DeckNode_deck @include(if: $refetch)\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  ...DeckNode_viewer\n}\n\nfragment DeckNode_deck on Deck {\n  id\n  splash {\n    ...Splash_splash\n  }\n  cards {\n    ...Card_card\n  }\n}\n\nfragment DeckNode_viewer on Viewer {\n  ...Splash_viewer\n  ...Card_viewer\n  ...Carousel_viewer\n  ...DeckRefresh_viewer\n}\n\nfragment DeckRefresh_viewer on Viewer {\n  id\n}\n\nfragment SplashCharacter_character on Character {\n  renderText\n  role\n  dualRoleIndex\n  image\n}\n\nfragment SplashCharacter_viewer on Viewer {\n  id\n}\n\nfragment SplashCharacters_splash on Splash {\n  characters {\n    ...SplashCharacter_character\n  }\n}\n\nfragment SplashCharacters_viewer on Viewer {\n  ...SplashCharacter_viewer\n}\n\nfragment SplashSpoofInput_viewer on Viewer {\n  id\n}\n\nfragment Splash_splash on Splash {\n  title\n  poster\n  ...SplashCharacters_splash\n}\n\nfragment Splash_viewer on Viewer {\n  ...SplashCharacters_viewer\n  ...SplashSpoofInput_viewer\n}\n"
+    "text": "query DeckDetailRefetchQuery(\n  $deckTitle: String!\n  $spoofInput: spoofInput\n  $genre: String!\n  $refetch: Boolean!\n) {\n  viewer {\n    ...DeckDetail_viewer_3ROcCi\n    id\n  }\n}\n\nfragment Card_card on Card {\n  image\n  renderText\n  character {\n    role\n  }\n  actorImageId\n  dualRoleIndex\n}\n\nfragment Card_viewer on Viewer {\n  id\n}\n\nfragment Carousel_viewer on Viewer {\n  id\n}\n\nfragment DeckDetail_viewer_3ROcCi on Viewer {\n  id\n  decks(first: 1, deckTitle: $deckTitle, spoofInput: $spoofInput, genre: $genre) {\n    edges {\n      node {\n        id\n        ...DeckNode_deck @include(if: $refetch)\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  ...DeckNode_viewer\n}\n\nfragment DeckNode_deck on Deck {\n  id\n  splash {\n    ...Splash_splash\n  }\n  cards {\n    ...Card_card\n  }\n}\n\nfragment DeckNode_viewer on Viewer {\n  ...Splash_viewer\n  ...Card_viewer\n  ...Carousel_viewer\n  ...DeckRefresh_viewer\n}\n\nfragment DeckRefresh_viewer on Viewer {\n  id\n}\n\nfragment SplashCharacter_character on Character {\n  renderText\n  role\n  dualRoleIndex\n  image\n}\n\nfragment SplashCharacter_viewer on Viewer {\n  id\n}\n\nfragment SplashCharacters_splash on Splash {\n  characters {\n    role\n    ...SplashCharacter_character\n  }\n}\n\nfragment SplashCharacters_viewer on Viewer {\n  ...SplashCharacter_viewer\n}\n\nfragment SplashSpoofInput_viewer on Viewer {\n  id\n}\n\nfragment Splash_splash on Splash {\n  title\n  poster\n  ...SplashCharacters_splash\n}\n\nfragment Splash_viewer on Viewer {\n  ...SplashCharacters_viewer\n  ...SplashSpoofInput_viewer\n}\n"
   }
 };
 })();

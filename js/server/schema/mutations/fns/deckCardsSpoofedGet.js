@@ -109,12 +109,43 @@ const characterNameVariantsGet = (
     );
 };
 
+const matchesOverlapFilteredGet = (
+  matches
+) => {
+
+  return matches.reduce(
+    (
+      memo,
+      match
+    ) => {
+
+      const overlapFlag = memo.find(
+        (m) =>
+          match.distance <
+            m.distance + m.originalName.length &&
+          match.distance + match.originalName.length >
+            m.distance
+      );
+
+      return (
+        overlapFlag
+      )
+        ? memo
+        : [
+          ...memo,
+          match
+        ];
+    },
+    []
+  );
+};
+
 const cardMatchesGet = (
   _card,
   characters
 ) => {
 
-  return characters.reduce(
+  const matches = characters.reduce(
     (
       memo,
       character
@@ -180,6 +211,10 @@ const cardMatchesGet = (
         }
       }
     );
+
+  return matchesOverlapFilteredGet(
+    matches
+  );
 };
 
 const cardsSpoofedGetFn = (

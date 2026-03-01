@@ -69,20 +69,10 @@ const mongoRemoteUriGet = () => {
 
 const mongoUriGet = () => {
 
-  switch (
-    nodeEnvGet()
-  ) {
-
-    case (
-      'production'
-    ) :
-
-      return mongoRemoteUriGet();
-
-    default :
-
-      return mongoLocalUriGet();
-  }
+  return (
+    mongoRemoteUriGet() ||
+    mongoLocalUriGet()
+  );
 };
 
 const genreGet = () => {

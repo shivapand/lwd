@@ -4,6 +4,8 @@ import nodeFetch from 'node-fetch';
 
 import fnDelayRunFn from './fnDelayRun';
 
+const MAX_RETRIES = 3;
+
 const cardsForGifyGet = (
   cards
 ) => {
@@ -69,7 +71,8 @@ const queryGet = (
 };
 
 const fnDelayRun = (
-  text
+  text,
+  retries
 ) => {
 
   return fnDelayRunFn(
@@ -81,57 +84,62 @@ const fnDelayRun = (
       }
     `
       .trim(),
-    text
+    text,
+    retries
   );
 };
 
 const cardsFlatlistGifyUrlAssignedGetFn = (
-  query
+  query,
+  retries = 0
 ) => {
 
-  return nodeFetch(
-    query
+  return (
+    retries >= MAX_RETRIES
   )
-    .then(
-      (
-        res
-      ) => {
-
-        return res.json();
-      }
+    ? Promise.resolve(
+      null
     )
-    .then(
-      (
-        json
-      ) => {
+    : nodeFetch(
+      query
+    )
+      .then(
+        (
+          res
+        ) => {
 
-        const gifyUrl = json.data.images?.[
-          'original_still'
-        ]
-          .url;
+          return res.json();
+        }
+      )
+      .then(
+        (
+          json
+        ) => {
 
-        if (
-          !gifyUrl
-        ) {
+          const gifyUrl = json.data?.images?.[
+            'original_still'
+          ]
+            ?.url;
+
+          return (
+            !gifyUrl
+          )
+            ? fnDelayRun(
+              query,
+              retries + 1
+            )
+            : gifyUrl;
+        }
+      )
+      .catch(
+        () => {
 
           return fnDelayRun(
-            query
+            query,
+            retries + 1
           );
         }
-
-        return (
-          gifyUrl
-        );
-      }
-    )
-    .catch(
-      () => {
-
-        return fnDelayRun(
-          query
-        );
-      }
-    );
+      );
 };
 
 const cardsFlatlistGifyUrlAssignedGet = (
