@@ -6,16 +6,41 @@ import React,
   useEffect
 } from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
-import {
   css
 } from '@emotion/core';
 
 import Loading from 'Components/Loading';
 
-const Card  = (
+const filterGet = (
+  card
+) => {
+
+  switch (
+    true
+  ) {
+
+    case (
+      !['hero', 'villain', 'heroine'].includes(
+        card.character?.role
+      )
+    ) :
+
+      return (
+        'grayscale(100%)'
+      );
+
+    case (
+      card.dualRoleIndex >=
+      0
+    ) :
+
+      return (
+        'hue-rotate(20deg)'
+      );
+  }
+};
+
+const Card = (
   props
 ) => {
 
@@ -61,33 +86,6 @@ const Card  = (
     ]
   );
 
-  const filterGet = () => {
-
-    switch (
-      true
-    ) {
-
-      case (
-        !['hero', 'villain', 'heroine'].includes(
-          props.card.character?.role
-        )
-      ) :
-
-        return (
-          'grayscale(100%)'
-        );
-
-      case (
-        props.card.dualRoleIndex >=
-        0
-      ) :
-
-        return (
-          'hue-rotate(20deg)'
-        );
-    }
-  };
-
   const textRender = () => {
 
     return (
@@ -130,7 +128,7 @@ const Card  = (
           `
         }
       >
-        <Loading/>
+        <Loading />
       </div>;
   };
 
@@ -158,7 +156,7 @@ const Card  = (
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              filter: filterGet()
+              filter: filterGet(props.card)
             }
           )
         }
@@ -171,24 +169,4 @@ const Card  = (
   );
 };
 
-export default createFragmentContainer(
-  Card,
-  {
-    card: graphql`
-      fragment Card_card on Card {
-        image,
-        renderText,
-        character {
-          role
-        },
-        actorImageId,
-        dualRoleIndex
-      }
-    `,
-    viewer: graphql`
-      fragment Card_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default Card;

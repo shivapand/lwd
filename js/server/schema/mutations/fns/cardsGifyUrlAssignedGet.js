@@ -4,7 +4,7 @@ import nodeFetch from 'node-fetch';
 
 import fnDelayRunFn from './fnDelayRun';
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 1;
 
 const cardsForGifyGet = (
   cards
@@ -99,7 +99,9 @@ const cardsFlatlistGifyUrlAssignedGetFn = (
           res
         ) => {
 
-          return res.json();
+          return (res.status === 429)
+            ? { data: [] }
+            : res.json();
         }
       )
       .then(

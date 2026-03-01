@@ -1,14 +1,14 @@
 'use strict';
 
-import React, 
+import React,
 {
   useState,
   useRef
 } from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
+  useParams,
+  useSearchParams
+} from 'react-router-dom';
 import {
   css
 } from '@emotion/core';
@@ -16,7 +16,6 @@ import {
 import {
   useIsMounted
 } from 'fns';
-import MovieCreateMutation from 'mutations/MovieCreate';
 import downloadjs from 'downloadjs';
 import Loading from 'Components/Loading';
 
@@ -39,89 +38,75 @@ const ShareDownload = (
     false
   );
 
-  const onErrorHandle = (
-    json
-  ) => {
+  const {
+    deckTitle
+  } = useParams();
 
-    return Promise.resolve(
-      JSON.parse(
-        json.errors[
-          0
-        ]
-          .message
-      )
-    );
-  };
-
-  const onCompletedHandle = (json) => {
-
-    const movie = json.movieCreate.output;
-
-    const base64 = `
-      data:image/jpeg;base64,${
-        movie.base64
-      }
-    `
-      .trim();
-
-    const filename = movie.path.match(
-      /^\/output\/(.+)/
-    )?.[
-      1
-    ];
-
-    return Promise.resolve(
-      downloadjs(
-        base64,
-        filename
-      )
-    )
-      .then(
-        () => {
-
-          return Promise.resolve(
-            props.onShareCompleted()
-          );
-        }
-      );
-  };
-
-  let clientMutationId = 0;
+  const [
+    searchParams
+  ] = useSearchParams();
 
   const movieCreateFn = () => {
 
-    const text = props.match.location.pathname
-      .match(
-        /^\/Deck\/(.+)/
-      )?.[
-        1
-      ];
+    const title = deckTitle;
 
-    const {
-      genre,
-      hero
-    } = props.match.location.query;
+    const genre = searchParams.get('genre') ||
+      process.env.GENRE;
 
-    return MovieCreateMutation.commit(
+    const hero = searchParams.get('hero') ||
+      process.env.HERO;
+
+    return fetch(
+      '/api/movie',
       {
-        input: {
-          clientMutationId: (
-            clientMutationId++
-          )
-            .toString(),
-          text,
-          spoofInput: {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(
+          {
+            title,
+            genre,
             hero
-          },
-          genre,
-          outputType: 'movie',
-          createFlag: true
+          }
+        )
+      }
+    )
+      .then(
+        (res) => res.json()
+      )
+      .then(
+        (movie) => {
+
+          const base64 = `
+            data:image/jpeg;base64,${
+              movie.base64
+            }
+          `
+            .trim();
+
+          const filename = movie.path.match(
+            /^\/output\/(.+)/
+          )?.[
+            1
+          ];
+
+          return Promise.resolve(
+            downloadjs(
+              base64,
+              filename
+            )
+          )
+            .then(
+              () => {
+
+                return Promise.resolve(
+                  props.onShareCompleted()
+                );
+              }
+            );
         }
-      },
-      props.relay.environment,
-      onErrorHandle,
-      onCompletedHandle
-    );
+      );
   };
 
   const movieCreate = () => {
@@ -140,16 +125,23 @@ const ShareDownload = (
       .then(
         () => {
 
-          if (
-            isMounted.current
-          ) {
-
-            return Promise.resolve(
+          return isMounted.current &&
+            Promise.resolve(
               loadingSet(
                 false
               )
             );
-          }
+        }
+      )
+      .catch(
+        () => {
+
+          return isMounted.current &&
+            Promise.resolve(
+              loadingSet(
+                false
+              )
+            );
         }
       );
   };
@@ -167,7 +159,7 @@ const ShareDownload = (
   const downloadIconRender = () => {
 
     return (
-      <i 
+      <i
         className = 'fa fa-download fa-fw'
       ></i>
     );
@@ -176,7 +168,7 @@ const ShareDownload = (
   const loadingIconRender = () => {
 
     return (
-      <Loading/>
+      <Loading />
     );
   };
 
@@ -190,7 +182,7 @@ const ShareDownload = (
   };
 
   return (
-    <button 
+    <button
       ref = {
         shareDownloadRef
       }
@@ -214,13 +206,4 @@ const ShareDownload = (
   );
 };
 
-export default createFragmentContainer(
-  ShareDownload,
-  {
-    viewer: graphql`
-      fragment ShareDownload_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default ShareDownload;

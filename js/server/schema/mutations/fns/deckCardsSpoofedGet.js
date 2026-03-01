@@ -234,7 +234,7 @@ const tokensSpoofedGet = (
           ? token
           : (() => {
 
-            const match = characters.find(
+            const textMatch = characters.find(
               (c) => {
 
                 const nameMatch = c._text &&
@@ -245,6 +245,11 @@ const tokensSpoofedGet = (
                 );
               }
             );
+
+            const match = textMatch ||
+              characters.find(
+                (c) => c.role === token.role
+              );
 
             return (!match)
               ? token
@@ -317,14 +322,16 @@ const cardsSpoofedGetFn = (
     }
   );
 
+  const baseTokens = _card._tokens || _card.tokens;
+
   const tokens = tokensSpoofedGet(
-    _card.tokens,
+    baseTokens,
     characters
   );
 
   return {
     ...card,
-    ...(tokens ? { tokens } : {}),
+    ...(tokens ? { tokens, _tokens: baseTokens } : {}),
     _text: baseText
   };
 };

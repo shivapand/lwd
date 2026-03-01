@@ -5,9 +5,8 @@ import React,
   useState
 } from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
+  useSearchParams
+} from 'react-router-dom';
 import {
   css
 } from '@emotion/core';
@@ -15,6 +14,10 @@ import {
 const SplashSpoofInput = (
   props
 ) => {
+
+  const [
+    searchParams
+  ] = useSearchParams();
 
   const [
     text,
@@ -48,19 +51,9 @@ const SplashSpoofInput = (
     event
   ) => {
 
-    if (
-      event.key ===
-      'Enter'
-    ) {
-
-      return onSubmitHandle(
-        event
-      );
-    }
-
-    return (
-      event
-    );
+    return (event.key === 'Enter')
+      ? onSubmitHandle(event)
+      : event;
   };
 
   const renderFn = () => {
@@ -79,7 +72,7 @@ const SplashSpoofInput = (
           onSubmitHandle
         }
       >
-        <div 
+        <div
           className = 'formGroupHolder'
         >
           <div
@@ -88,10 +81,10 @@ const SplashSpoofInput = (
             <input
               className = {
                 `
-                  formControl 
+                  formControl
                   form-control form-control-lg
                   rounded-left
-                ` 
+                `
               }
               css = {
                 css(
@@ -113,7 +106,8 @@ const SplashSpoofInput = (
                 )
               }
               placeholder = {
-                props.match.location.query.hero
+                searchParams.get('hero') ||
+                process.env.HERO
               }
               value = {
                 text || ''
@@ -156,13 +150,4 @@ const SplashSpoofInput = (
   );
 };
 
-export default createFragmentContainer(
-  SplashSpoofInput,
-  {
-    viewer: graphql`
-      fragment SplashSpoofInput_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default SplashSpoofInput;

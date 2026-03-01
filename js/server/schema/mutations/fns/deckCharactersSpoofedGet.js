@@ -143,7 +143,7 @@ const characterGroupsSpoofNameAssignedGetFn = (
               {
                 ...character,
                 text,
-                _text: character.text
+                _text: character._text || character.text
               }
             ];
           },

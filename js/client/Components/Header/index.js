@@ -1,28 +1,15 @@
 'use strict';
 
 import React from 'react';
-import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
 
 import MovieSearch from 'Components/MovieSearch';
 
-const Header = (
-  props
-) => {
+const Header = () => {
 
   const movieSearchRender = () => {
 
     return (
-      <MovieSearch
-        viewer = {
-          props.viewer
-        }
-        match = {
-          props.match
-        }
-      />
+      <MovieSearch />
     );
   };
 
@@ -37,13 +24,4 @@ const Header = (
   );
 };
 
-export default createFragmentContainer(
-  Header,
-  {
-    viewer: graphql`
-      fragment Header_viewer on Viewer {
-        ...MovieSearch_viewer
-      }
-    `
-  }
-);
+export default Header;

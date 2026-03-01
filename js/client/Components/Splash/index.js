@@ -2,10 +2,6 @@
 
 import React from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
-import {
   css
 } from '@emotion/core';
 
@@ -41,12 +37,6 @@ const Splash = (
           splash = {
             props.splash
           }
-          viewer = {
-            props.viewer
-          }
-          match = {
-            props.match
-          }
           textFontSize = {
             props.textFontSize
           }
@@ -62,12 +52,6 @@ const Splash = (
 
     return (
       <SplashSpoofInput
-        viewer = {
-          props.viewer
-        }
-        match = {
-          props.match
-        }
         onSplashSpoofInputTrigger = {
           props.onSplashSpoofInputTrigger
         }
@@ -172,21 +156,4 @@ const Splash = (
   );
 };
 
-export default createFragmentContainer(
-  Splash,
-  {
-    splash: graphql`
-      fragment Splash_splash on Splash {
-        title,
-        poster,
-        ...SplashCharacters_splash
-      }
-    `,
-    viewer: graphql`
-      fragment Splash_viewer on Viewer {
-        ...SplashCharacters_viewer,
-        ...SplashSpoofInput_viewer
-      }
-    `
-  }
-);
+export default Splash;

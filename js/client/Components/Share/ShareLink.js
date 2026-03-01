@@ -2,15 +2,11 @@
 
 import React from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
-import {
   css
 } from '@emotion/core';
 import copyToClipboard from 'copy-to-clipboard';
 
-const ShareLink  = (
+const ShareLink = (
   props
 ) => {
 
@@ -56,13 +52,4 @@ const ShareLink  = (
   );
 };
 
-export default createFragmentContainer(
-  ShareLink,
-  {
-    viewer: graphql`
-      fragment ShareLink_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default ShareLink;

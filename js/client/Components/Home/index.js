@@ -1,29 +1,42 @@
 'use strict';
 
-import React from 'react';
+import React,
+{
+  useEffect
+} from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
+  useNavigate
+} from 'react-router-dom';
 
 const Home = () => {
+
+  const navigate = useNavigate();
+
+  useEffect(
+    () => {
+
+      navigate(
+        `/deck/random?genre=${
+          process.env.GENRE
+        }&hero=${
+          encodeURIComponent(process.env.HERO)
+        }`,
+        {
+          replace: true
+        }
+      );
+    },
+    [
+      navigate
+    ]
+  );
 
   return (
     <div
       className = 'Home'
     >
-      Home
     </div>
   );
 };
 
-export default createFragmentContainer(
-  Home,
-  {
-    viewer: graphql`
-      fragment Home_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default Home;

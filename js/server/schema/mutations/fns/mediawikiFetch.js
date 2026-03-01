@@ -17,10 +17,11 @@ const mediawikiFetch = async (query, retryCount = 0) => {
       return await res.json();
     }
 
-    console.log(`mediawikiFetch failed with status ${res.status} for query: ${query}`);
-    
+    if (res.status === 404) {
+      return null;
+    }
+
     if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
       await new Promise(resolve => setTimeout(resolve, 2000));
       return mediawikiFetch(query, retryCount + 1);
     }

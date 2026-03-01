@@ -6,10 +6,6 @@ import React,
   useEffect
 } from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
-import {
   css
 } from '@emotion/core';
 import {
@@ -21,6 +17,10 @@ const Carousel = (
 ) => {
 
   const interval = 7000;
+
+  const carouselRef = useRef(
+    null
+  );
 
   const swipeableHandlers = useSwipeable(
     {
@@ -53,10 +53,6 @@ const Carousel = (
           );
       }
     }
-  );
-
-  const carouselRef = useRef(
-    null
   );
 
   useEffect(
@@ -160,7 +156,7 @@ const Carousel = (
           }
         </div>
 
-        <a 
+        <a
           css = {
             css(
               {
@@ -212,13 +208,4 @@ const Carousel = (
   );
 };
 
-export default createFragmentContainer(
-  Carousel,
-  {
-    viewer: graphql`
-      fragment Carousel_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default Carousel;

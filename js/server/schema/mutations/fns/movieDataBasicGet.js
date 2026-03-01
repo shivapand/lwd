@@ -397,7 +397,8 @@ export default async (title, plotLimit) => {
 
   const geminiResult = (!cast?.length || !rawPlotText)
     ? null
-    : await geminiPlotAndRolesGet(rawPlotText, cast, plotLimit);
+    : await geminiPlotAndRolesGet(rawPlotText, cast, plotLimit)
+      .catch(() => null);
 
   return (!geminiResult)
     ? null

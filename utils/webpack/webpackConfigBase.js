@@ -74,17 +74,7 @@ export default {
                 '@babel/preset-react',
                 '@emotion/babel-preset-css-prop'
               ],
-              plugins: [
-                [
-                  'babel-plugin-relay',
-                  {
-                    schema: path.join(
-                      process.cwd(),
-                      'schema.json'
-                    )
-                  }
-                ]
-              ]
+              plugins: []
             }
           }
         ]

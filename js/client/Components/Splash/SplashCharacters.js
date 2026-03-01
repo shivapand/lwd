@@ -1,10 +1,6 @@
 'use strict';
 
 import React from 'react';
-import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
 
 import SplashCharacter from './SplashCharacter';
 
@@ -64,12 +60,6 @@ const SplashCharacters = (
               character = {
                 character
               }
-              viewer = {
-                props.viewer
-              }
-              match = {
-                props.match
-              }
               textFontSize = {
                 props.textFontSize
               }
@@ -86,7 +76,7 @@ const SplashCharacters = (
     <div
       className = {
         `
-          SplashCharacters 
+          SplashCharacters
           w-100
           d-flex flex-wrap
           justify-content-center
@@ -100,21 +90,4 @@ const SplashCharacters = (
   );
 };
 
-export default createFragmentContainer(
-  SplashCharacters,
-  {
-    splash: graphql`
-      fragment SplashCharacters_splash on Splash {
-        characters {
-          role
-          ...SplashCharacter_character
-        }
-      }
-    `,
-    viewer: graphql`
-      fragment SplashCharacters_viewer on Viewer {
-        ...SplashCharacter_viewer
-      }
-    `
-  }
-);
+export default SplashCharacters;

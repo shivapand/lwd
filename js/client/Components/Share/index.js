@@ -6,19 +6,13 @@ import React,
   useState
 } from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
-import {
   css
 } from '@emotion/core';
 
 import ShareDownload from './ShareDownload';
 import ShareLink from './ShareLink';
 
-const Share = (
-  props
-) => {
+const Share = () => {
 
   const dropdownRef = useRef(
     null
@@ -65,12 +59,6 @@ const Share = (
 
     return (
       <ShareDownload
-        viewer = {
-          props.viewer
-        }
-        match = {
-          props.match
-        }
         onShareCompleted = {
           onShareCompletedHandle
         }
@@ -82,12 +70,6 @@ const Share = (
 
     return (
       <ShareLink
-        viewer = {
-          props.viewer
-        }
-        match = {
-          props.match
-        }
         onShareCompleted = {
           onShareCompletedHandle
         }
@@ -135,7 +117,7 @@ const Share = (
             onDropLeftTriggerHandle
           }
         >
-          <i 
+          <i
             className = 'fa fa-share-alt fa-fw'
           ></i>
         </button>
@@ -155,14 +137,4 @@ const Share = (
   );
 };
 
-export default createFragmentContainer(
-  Share,
-  {
-    viewer: graphql`
-      fragment Share_viewer on Viewer {
-        ...ShareDownload_viewer,
-        ...ShareLink_viewer
-      }
-    `
-  }
-);
+export default Share;

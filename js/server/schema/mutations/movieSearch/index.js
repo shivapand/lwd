@@ -86,7 +86,9 @@ export default async (
 
       const bindingCollection = json?.results?.bindings || [];
 
-      return bindingCollection.map(resultGet);
+      return bindingCollection
+        .filter((b) => b.articleName?.value)
+        .map(resultGet);
     })();
 
     })();

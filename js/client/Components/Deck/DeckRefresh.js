@@ -5,21 +5,18 @@ import React,
   useState
 } from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
+  useNavigate,
+  useSearchParams
+} from 'react-router-dom';
 
 import {
   useIsMounted
 } from 'fns';
-import MovieCreateMutation from 'mutations/MovieCreate';
 import Loading from 'Components/Loading';
 
-const DeckRefresh = (
-  props
-) => {
+const DeckRefresh = () => {
 
-  const  [
+  const [
     loading,
     loadingSet
   ] = useState(
@@ -30,92 +27,59 @@ const DeckRefresh = (
     false
   );
 
-  let clientMutationId = 0;
+  const navigate = useNavigate();
 
-  const onMovieCreateErrorHandle = (
-    json
+  const [
+    searchParams
+  ] = useSearchParams();
+
+  const onRefreshTriggerHandle = (
+    event
   ) => {
-
-    return JSON.parse(
-      json.errors[
-        0
-      ]
-        .message
-    );
-  };
-
-  const onMovieCreateCompletedHandle = (
-    json
-  ) => {
-
-    return props.match.router
-      .push(
-        `
-          /Deck/${
-            json.movieCreate.viewer.deckTitle
-          }${
-            props.match.location.search
-          }
-        `
-          .trim()
-      );
-  };
-
-  const movieCreateFn = () => {
-
-    return MovieCreateMutation.commit(
-      {
-        input: {
-          clientMutationId: (
-            clientMutationId++
-          )
-            .toString(),
-          text: 'random',
-          genre: process.env.GENRE
-        }
-      },
-      props.relay.environment,
-      onMovieCreateErrorHandle,
-      onMovieCreateCompletedHandle
-    );
-  };
-
-  const movieCreate = () => {
-
-    return Promise.resolve(
-      loadingSet(
-        true
-      )
-    )
-      .then(
-        () => {
-
-          return movieCreateFn();
-        }
-      )
-      .then(
-        () => {
-
-          if (
-            isMounted.current
-          ) {
-
-            return Promise.resolve(
-              loadingSet(
-                false
-              )
-            );
-          }
-        }
-      );
-  };
-
-  const onRefreshTriggerHandle = () => {
 
     event.preventDefault();
     event.stopPropagation();
 
-    return movieCreate();
+    loadingSet(true);
+
+    const genre = searchParams.get('genre') ||
+      process.env.GENRE;
+
+    const hero = searchParams.get('hero') ||
+      process.env.HERO;
+
+    return fetch(
+      `/api/deck/random?genre=${
+        encodeURIComponent(genre)
+      }&hero=${
+        encodeURIComponent(hero)
+      }`
+    )
+      .then(
+        (res) => res.json()
+      )
+      .then(
+        (data) => {
+
+          return (data.redirect)
+            ? navigate(data.redirect)
+            : null;
+        }
+      )
+      .then(
+        () => {
+
+          return isMounted.current &&
+            loadingSet(false);
+        }
+      )
+      .catch(
+        () => {
+
+          return isMounted.current &&
+            loadingSet(false);
+        }
+      );
   };
 
   const refreshIconRender = () => {
@@ -130,7 +94,7 @@ const DeckRefresh = (
   const loadingRender = () => {
 
     return (
-      <Loading/>
+      <Loading />
     );
   };
 
@@ -171,13 +135,4 @@ const DeckRefresh = (
   );
 };
 
-export default createFragmentContainer(
-  DeckRefresh,
-  {
-    viewer: graphql`
-      fragment DeckRefresh_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default DeckRefresh;

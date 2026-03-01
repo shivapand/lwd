@@ -1,16 +1,10 @@
 'use strict';
 
 import React from 'react';
-import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
 
 import Share from 'Components/Share';
 
-const Footer = (
-  props
-) => {
+const Footer = () => {
 
   const contactRender = () => {
 
@@ -29,14 +23,7 @@ const Footer = (
       <div
         className = 'shareContainer ml-auto text-secondary'
       >
-        <Share
-          viewer = {
-            props.viewer
-          }
-          match = {
-            props.match
-          }
-        />
+        <Share />
       </div>
     );
   };
@@ -45,7 +32,7 @@ const Footer = (
     <div
       className = {
         `
-          Footer 
+          Footer
           d-flex
           align-items-center
         `
@@ -61,13 +48,4 @@ const Footer = (
   );
 };
 
-export default createFragmentContainer(
-  Footer,
-  {
-    viewer: graphql`
-      fragment Footer_viewer on Viewer {
-        ...Share_viewer
-      }
-    `
-  }
-);
+export default Footer;

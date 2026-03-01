@@ -5,7 +5,6 @@ dotenv.config();
 
 import path from 'path';
 import express from 'express';
-import expressGraphql from 'express-graphql';
 
 import {
   titleGet,
@@ -16,15 +15,16 @@ import {
   hostUrlGet,
   fbAppIdGet
 } from './fns/variable';
-import schema from './schema';
 import mongoClientConnect from './fns/mongoClientConnect';
-import mediaOutputFolderInit from 
+import mediaOutputFolderInit from
   './fns/mediaOutputFolderInit';
-import deckTitleRouteHandle 
+import deckTitleRouteHandle
   from './fns/deckTitleRouteHandle';
-import outputGifRouteHandle 
+import outputGifRouteHandle
   from './fns/outputGifRouteHandle';
-import schemaUpdate from './fns/schemaUpdate';
+import searchRoute from './routes/search';
+import deckRoute from './routes/deck';
+import movieRoute from './routes/movie';
 
 (
   async () => {
@@ -34,8 +34,6 @@ import schemaUpdate from './fns/schemaUpdate';
     const db = await mongoClientConnect(
       mongoUriGet()
     );
-
-    await schemaUpdate();
 
     const port = portGet();
 
@@ -49,6 +47,10 @@ import schemaUpdate from './fns/schemaUpdate';
       .set(
         'view engine',
         'ejs'
+      )
+
+      .use(
+        express.json()
       )
 
       .get(
@@ -91,23 +93,44 @@ import schemaUpdate from './fns/schemaUpdate';
         )
       )
 
-      .use(
-        '/graphql',
-        async (
+      .get(
+        '/api/search',
+        (
           req,
           res
         ) => {
 
-          return expressGraphql(
-            {
-              schema,
-              pretty: true,
-              context: {
-                db,
-                req
-              }
-            }
-          )(
+          return searchRoute(
+            req,
+            res
+          );
+        }
+      )
+
+      .get(
+        '/api/deck/:deckTitle',
+        (
+          req,
+          res
+        ) => {
+
+          return deckRoute(
+            db,
+            req,
+            res
+          );
+        }
+      )
+
+      .post(
+        '/api/movie',
+        (
+          req,
+          res
+        ) => {
+
+          return movieRoute(
+            db,
             req,
             res
           );

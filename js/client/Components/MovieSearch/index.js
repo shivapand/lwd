@@ -7,9 +7,9 @@ import React,
   useRef
 } from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
+  useNavigate,
+  useSearchParams
+} from 'react-router-dom';
 import {
   AsyncTypeahead,
   TypeaheadMenu
@@ -22,10 +22,6 @@ import {
   useIsMounted
 } from 'fns';
 import MovieSearchResultItem from './MovieSearchResultItem';
-import MovieSearchMutation
-  from 'mutations/MovieSearch';
-import MovieCreateMutation
-  from 'mutations/MovieCreate';
 
 const dropdownStyle = css({
   '& .form-control': {
@@ -81,9 +77,7 @@ const noResultsStyle = css({
   textAlign: 'center'
 });
 
-const MovieSearch = (
-  props
-) => {
+const MovieSearch = () => {
 
   const [
     results,
@@ -118,63 +112,35 @@ const MovieSearch = (
     null
   );
 
-  const clientMutationIdRef = useRef(
-    0
-  );
+  const navigate = useNavigate();
 
-  const clientMutationIdGet = () => {
-
-    const current = clientMutationIdRef.current;
-
-    clientMutationIdRef.current = current + 1;
-
-    return current.toString();
-  };
-
-  const onMovieSearchErrorHandle = (
-    json
-  ) => {
-
-    return (
-      json.errors[0].message
-    );
-  };
-
-  const onMovieSearchCompletedHandle = (
-    json
-  ) => {
-
-    const data = json.movieSearch;
-
-    const _results = data.results;
-
-    return Promise.resolve(
-      resultsSet(
-        _results
-      )
-    );
-  };
+  const [
+    searchParams
+  ] = useSearchParams();
 
   const movieSearchFn = useCallback(
     (
       text
     ) => {
 
-      return MovieSearchMutation.commit(
-        {
-          input: {
-            clientMutationId: clientMutationIdGet(),
-            text
+      return fetch(
+        `/api/search?q=${
+          encodeURIComponent(text)
+        }`
+      )
+        .then(
+          (res) => res.json()
+        )
+        .then(
+          (data) => {
+
+            return resultsSet(
+              data.results
+            );
           }
-        },
-        props.relay.environment,
-        onMovieSearchErrorHandle,
-        onMovieSearchCompletedHandle
-      );
+        );
     },
-    [
-      props.relay.environment
-    ]
+    []
   );
 
   const movieSearch = useCallback(
@@ -206,6 +172,17 @@ const MovieSearch = (
           }
         )
         .then(
+          () => {
+
+            return isMounted.current &&
+              Promise.resolve(
+                loadingSet(
+                  false
+                )
+              );
+          }
+        )
+        .catch(
           () => {
 
             return isMounted.current &&
@@ -263,126 +240,31 @@ const MovieSearch = (
     );
   };
 
-  const onMovieCreateErrorHandle = () => {
-
-    return Promise.resolve(
-      loadingSet(false)
-    );
-  };
-
-  const onMovieCreateCompletedHandle = useCallback(
-    (
-      json
-    ) => {
-
-      const splash = json.movieCreate?.output?.splash;
-
-      return (!splash)
-        ? Promise.resolve(
-          loadingSet(false)
-        )
-        : Promise.resolve(
-          props.match.router
-            .push(
-              `
-                /Deck/${
-                  splash.title
-                }?genre=${
-                  props.match.location.query.genre ||
-                  process.env.GENRE
-                }&hero=${
-                  props.match.location.query.hero ||
-                  process.env.HERO
-                }
-              `
-                .trim()
-            )
-        );
-    },
-    [
-      props.match.router,
-      props.match.location.query.genre,
-      props.match.location.query.hero
-    ]
-  );
-
-  const movieCreateFn = useCallback(
-    (
-      title
-    ) => {
-
-      return !title
-        ? null
-        : MovieCreateMutation.commit(
-          {
-            input: {
-              clientMutationId: clientMutationIdGet(),
-              text: title,
-              source: 'user',
-              createFlag: true,
-              genre: props.match.location.query.genre ||
-                process.env.GENRE,
-              spoofInput: {
-                hero: props.match.location.query.hero ||
-                  process.env.HERO
-              }
-            }
-          },
-          props.relay.environment,
-          onMovieCreateErrorHandle,
-          onMovieCreateCompletedHandle
-        );
-    },
-    [
-      props.relay.environment,
-      onMovieCreateCompletedHandle
-    ]
-  );
-
-  const movieCreate = (
-    title
-  ) => {
-
-    return Promise.resolve(
-      loadingSet(
-        true
-      )
-    )
-      .then(
-        () => {
-
-          window.dispatchEvent(
-            new CustomEvent('deckLoading', { detail: true })
-          );
-
-          return movieCreateFn(
-            title
-          );
-        }
-      )
-      .then(
-        () => {
-
-          return isMounted.current &&
-            Promise.resolve(
-              loadingSet(
-                false
-              )
-            );
-        }
-      );
-  };
-
   const onChangeHandle = (
     [
       result
     ]
   ) => {
 
-    return !loading &&
-      movieCreate(
-        result?.title
-      );
+    const title = result?.title;
+
+    return (!loading && title)
+      ? navigate(
+        `/deck/${
+          encodeURIComponent(title)
+        }?genre=${
+          encodeURIComponent(
+            searchParams.get('genre') ||
+            process.env.GENRE
+          )
+        }&hero=${
+          encodeURIComponent(
+            searchParams.get('hero') ||
+            process.env.HERO
+          )
+        }`
+      )
+      : null;
   };
 
   const onFocusHandle = () => {
@@ -552,13 +434,4 @@ const MovieSearch = (
   );
 };
 
-export default createFragmentContainer(
-  MovieSearch,
-  {
-    viewer: graphql`
-      fragment MovieSearch_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default MovieSearch;

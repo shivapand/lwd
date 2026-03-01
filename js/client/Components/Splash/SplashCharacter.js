@@ -2,40 +2,38 @@
 
 import React from 'react';
 import {
-  createFragmentContainer,
-  graphql
-} from 'react-relay';
-import {
   css
 } from '@emotion/core';
+
+const filterGet = (
+  role
+) => {
+
+  switch (
+    true
+  ) {
+
+    case (
+      ['hero', 'villain', 'heroine'].includes(
+        role
+      )
+    ) :
+
+      return (
+        'grayscale(50%)'
+      );
+
+    default :
+
+      return (
+        'grayscale(100%)'
+      );
+  }
+};
 
 const SplashCharacter = (
   props
 ) => {
-
-  const filterGet = () => {
-
-    switch (
-      true
-    ) {
-
-      case (
-        ['hero', 'villain', 'heroine'].includes(
-          props.character.role
-        )
-      ) :
-
-        return (
-          'grayscale(50%)'
-        );
-
-      default :
-
-        return (
-          'grayscale(100%)'
-        );
-    }
-  };
 
   const textRender = () => {
 
@@ -86,7 +84,7 @@ const SplashCharacter = (
             backgroundRepeat: 'no-repeat',
             filter: `
               ${
-                filterGet()
+                filterGet(props.character.role)
               } brightness(1.25)
             `
               .trim()
@@ -101,21 +99,4 @@ const SplashCharacter = (
   );
 };
 
-export default createFragmentContainer(
-  SplashCharacter,
-  {
-    character: graphql`
-      fragment SplashCharacter_character on Character {
-        renderText,
-        role,
-        dualRoleIndex,
-        image
-      }
-    `,
-    viewer: graphql`
-      fragment SplashCharacter_viewer on Viewer {
-        id
-      }
-    `
-  }
-);
+export default SplashCharacter;

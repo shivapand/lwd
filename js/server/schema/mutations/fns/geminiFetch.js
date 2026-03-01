@@ -6,7 +6,9 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
-const groqFetch = async (prompt) => {
+const MAX_RETRIES = 3;
+
+const groqFetch = async (prompt, attempt = 0) => {
 
   const apiKey = process.env.GROQ_API_KEY;
 
@@ -37,20 +39,34 @@ const groqFetch = async (prompt) => {
         }
       );
 
-      return (!res.ok)
-        ? null
-        : await (async () => {
+      return (res.status === 429 && attempt < MAX_RETRIES)
+        ? await (async () => {
 
-          const json = await res.json();
+          const retryAfter = res.headers.get('retry-after');
 
-          const text = json?.choices?.[0]?.message?.content;
+          const delay = (retryAfter && parseInt(retryAfter) * 1000) ||
+            (Math.pow(2, attempt) * 2000);
 
-          const parsed = (!text)
-            ? null
-            : JSON.parse(text);
+          await new Promise(
+            (resolve) => setTimeout(resolve, delay)
+          );
 
-          return parsed;
-        })();
+          return groqFetch(prompt, attempt + 1);
+        })()
+        : (!res.ok)
+          ? null
+          : await (async () => {
+
+            const json = await res.json();
+
+            const text = json?.choices?.[0]?.message?.content;
+
+            const parsed = (!text)
+              ? null
+              : JSON.parse(text);
+
+            return parsed;
+          })();
     })();
 };
 
