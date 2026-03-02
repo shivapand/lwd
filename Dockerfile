@@ -11,6 +11,7 @@ RUN if [ -f /etc/ImageMagick-7/policy.xml ]; then sed -i 's/rights="none" patter
 # 3. Set up the working directory
 WORKDIR /app
 RUN mkdir -p media/output
+RUN ln -s /app/media /media
 
 # 4. Copy package files and install dependencies
 # We use --legacy-peer-deps to handle older package versions
@@ -24,7 +25,7 @@ COPY . .
 ENV NODE_OPTIONS=--openssl-legacy-provider
 
 # 7. Build the application
-RUN npm run build:server && npm run build:client
+RUN npm run build
 
 # 8. Hugging Face port configuration
 EXPOSE 7860

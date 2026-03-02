@@ -6,3 +6,7 @@ dist
 .DS_Store
 temp
 media/output
+source-images
+scripts
+current_error.png
+latest_error.png
