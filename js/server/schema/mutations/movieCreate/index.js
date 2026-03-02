@@ -1,7 +1,5 @@
 'use strict';
 
-import path from 'path';
-import fs from 'fs';
 import {
   ObjectID
 } from 'mongodb';
@@ -17,13 +15,11 @@ import {
   deckCountDocuments,
   deckCreate as deckCreateFn
 } from '~/js/server/data/deck';
-import movieSearch from 
-  '../movieSearch';
 import {
   movieCreate as movieCreateFn
 } from '~/js/server/data/movie';
 
-const sourceName = 'tmdb5000movies';
+const sourceName = 'user';
 
 const deckCachedHandledGet = (
   deck,
@@ -41,96 +37,6 @@ const deckCachedHandledGet = (
   );
 };
 
-const tmd5000moviesTitleByIndexGet = async (
-  index
-) => {
-
-  const dataFilename = 'tmdb_5000_movies.json';
-
-  const datasetsFolderPathString = 'temp/datasets';
-
-  const jsonFilePath = path.join(
-    process.cwd(),
-    datasetsFolderPathString,
-    'json',
-    dataFilename
-  );
-
-  let data = await(
-    new Promise(
-      (
-        resolve,
-        reject
-      ) => {
-
-        return fs.readFile(
-          jsonFilePath,
-          'utf8',
-          (
-            error,
-            res
-          ) => {
-
-            if (
-              error
-            ) {
-
-              return reject(
-                error
-              );
-            }
-
-            return resolve(
-              JSON.parse(
-                res
-              )
-            );
-          }
-        );
-      }
-    )
-  );
-
-  const title = data[
-    index
-  ]?.title;
-
-  return (
-    title
-  );
-};
-
-const titleMatchGet = (
-  _title
-) => {
-
-  return movieSearch(
-    _title,
-    1,
-    false
-  )
-    .then(
-      (
-        res
-      ) => {
-
-        const title = res[
-          0
-        ]?.title;
-
-        const match = title?.match(
-          _title
-        );
-
-        return (
-          match
-        ) ?
-          title :
-          null;
-      }
-    );
-};
-
 const deckByIdGet = async (
   deckId,
   spoofInput,
@@ -143,41 +49,6 @@ const deckByIdGet = async (
       _id: new ObjectID(
         deckId
       )
-    },
-    undefined,
-    db
-  );
-
-  deck = await deckCachedHandledGet(
-    deck,
-    spoofInput,
-    genre,
-    db
-  );
-
-  return (
-    deck
-  );
-};
-
-const deckByIndexGet = async (
-  index,
-  spoofInput,
-  genre,
-  db
-) => {
-
-  let text = await tmd5000moviesTitleByIndexGet(
-    index
-  );
-
-  text = await titleMatchGet(
-    text
-  );
-
-  let deck = await deckFindOne(
-    {
-      'splash.title': text
     },
     undefined,
     db
@@ -312,25 +183,6 @@ const deckGet = async (
         )[
           1
         ],
-        spoofInput,
-        genre,
-        db
-      );
-
-    case (
-      !!text.match(
-        /^index:\d+$/
-      )
-    ) :
-
-      return deckByIndexGet(
-        parseInt(
-          text.split(
-            /:/
-          )[
-            1
-          ]
-        ),
         spoofInput,
         genre,
         db

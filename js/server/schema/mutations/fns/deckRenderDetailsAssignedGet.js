@@ -1,57 +1,11 @@
 'use strict';
 
-import wordsTokenizedGet from './wordsTokenizedGet';
-
 const charactersRenderTextAssignedGetFn = (
   _text,
   lengthMax
 ) => {
 
-  const tokens = wordsTokenizedGet(
-    _text
-  )
-    .map(
-      (
-        {
-          text
-        }
-      ) => {
-
-        return (
-          text
-        );
-      }
-    );
-
-  let text = tokens.reduce(
-    (
-      memo,
-      token
-    ) => {
-
-      if (
-        memo.length < 
-        lengthMax
-      ) {
-
-        return `
-          ${
-            memo
-          } ${
-            token
-          }
-        `
-          .trim();
-      }
-
-      return (
-        memo
-      );
-    },
-    ''
-  );
-
-  text = text.slice(
+  let text = _text.slice(
     0, lengthMax
   );
 

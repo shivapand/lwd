@@ -139,10 +139,6 @@ if (
   !module.parent
 ) {
 
-  jsonFromCsvGet(
-    'tmdb_5000_movies',
-    'temp/datasets'
-  );
 }
 
 export default jsonFromCsvGet;

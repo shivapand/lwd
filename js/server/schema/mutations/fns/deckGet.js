@@ -2,6 +2,7 @@
 
 import movieDataBasicGet from '../fns/movieDataBasicGet';
 import charactersGet from '../fns/charactersGet';
+import wikidataRolesGet from './wikidataRolesGet';
 import cardsCharactersAssignedGet
   from './cardsCharactersAssignedGet';
 import cardsCharacterAssignedGet
@@ -59,6 +60,25 @@ const deckPreBuiltGet = async (
   let characters = await charactersGet(
     movieDataBasic.cast,
     movieDataBasic.plot
+  );
+
+  const wikidataRoles = await wikidataRolesGet(
+    characters,
+    movieDataBasic.title
+  )
+    .catch(() => ({}));
+
+  characters = characters.map(
+    (character) => {
+
+      const wikidataRole = Object.keys(wikidataRoles).find(
+        (key) => wikidataRoles[key]?.text === character.text
+      );
+
+      return (wikidataRole)
+        ? { ...character, role: wikidataRole }
+        : character;
+    }
   );
 
   let cards = cardsCharactersAssignedGet(

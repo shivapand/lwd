@@ -1,17 +1,21 @@
 'use strict';
 
-import mongoClientConnect
-  from '~/js/server/fns/mongoClientConnect';
 import movieDataBasicGet
   from '~/js/server/schema/mutations/fns/movieDataBasicGet';
 import charactersGet
   from '~/js/server/schema/mutations/fns/charactersGet';
-import cardsGet
-  from '~/js/server/schema/mutations/fns/cardsGet';
-import charactersGenderAssignedGet
-  from '~/js/server/schema/mutations/fns/charactersGenderAssignedGet';
-import charactersMetaAssignedGet
-  from '~/js/server/schema/mutations/fns/charactersMetaAssignedGet';
+import wikidataRolesGet
+  from '~/js/server/schema/mutations/fns/wikidataRolesGet';
+import cardsCharactersAssignedGet
+  from '~/js/server/schema/mutations/fns/cardsCharactersAssignedGet';
+import cardsCharacterAssignedGet
+  from '~/js/server/schema/mutations/fns/cardsCharacterAssignedGet';
+import charactersMetaStarringAssignedGet
+  from '~/js/server/schema/mutations/fns/charactersMetaStarringAssignedGet';
+import charactersMetaRoleAssignedGet
+  from '~/js/server/schema/mutations/fns/charactersMetaRoleAssignedGet';
+import charactersMetaRenderAssignedGet
+  from '~/js/server/schema/mutations/fns/charactersMetaRenderAssignedGet';
 import cardsMetaAssignedGet
   from '~/js/server/schema/mutations/fns/cardsMetaAssignedGet';
 import deckSpoofableGet
@@ -25,152 +29,49 @@ const debug = async () => {
   // eslint-disable-next-line no-console
   const log = console.log.bind(console);
 
-  log('=== Step 1: movieDataBasicGet ===');
+  log(`=== Debug Pipeline for "${title}" ===`);
 
-  const movieDataBasic = await movieDataBasicGet(
-    title,
-    5
-  );
-
-  log(
-    'Cast count:', movieDataBasic?.cast?.length
-  );
-
-  (movieDataBasic?.cast || [])
-    .slice(0, 8)
-    .forEach(
-      (c, i) => {
-
-        log(
-          `  Cast ${i}: actor=${
-            c.actor?.text
-          } ud=${
-            c.actor?.ud
-          } role=${
-            c.role?.substring(0, 60)
-          }`
-        );
-      }
-    );
-
-  log(
-    'Plot cards:', movieDataBasic?.plot?.length
-  );
+  log('\n=== Step 1: movieDataBasicGet ===');
+  const movieDataBasic = await movieDataBasicGet(title, 5);
+  log(`  Cast count: ${movieDataBasic?.cast?.length}`);
+  log(`  Plot cards: ${movieDataBasic?.plot?.length}`);
 
   log('\n=== Step 2: charactersGet ===');
+  let characters = await charactersGet(movieDataBasic.cast, movieDataBasic.plot);
+  log(`  Characters count: ${characters?.length}`);
 
-  const characters = await charactersGet(
-    movieDataBasic.cast,
-    movieDataBasic.plot,
-    movieDataBasic.plotText
-  );
+  log('\n=== Step 3: wikidataRolesGet ===');
+  const wikidataRoles = await wikidataRolesGet(characters, title).catch(() => ({}));
+  log('  Wikidata Roles:');
+  ['hero', 'heroine', 'villain'].forEach(role => {
+    const char = wikidataRoles[role];
+    log(`    ${role}: ${char ? char.text : 'null'}`);
+  });
 
-  log(
-    'Characters count:', characters?.length
-  );
+  // Merge logic
+  characters = characters.map(c => {
+    const wikidataRole = Object.keys(wikidataRoles).find(k => wikidataRoles[k]?.text === c.text);
+    return wikidataRole ? { ...c, role: wikidataRole } : c;
+  });
 
-  characters.forEach(
-    (c, i) => {
+  log('\n=== Step 4: Cards Assignment ===');
+  let cards = cardsCharactersAssignedGet(movieDataBasic.plot, characters);
+  cards = cardsCharacterAssignedGet(cards);
+  log(`  Cards count: ${cards?.length}`);
 
-      log(
-        `  Char ${i}: ${
-          c.text
-        } (actor: ${
-          c.actor?.text
-        }, castIndex: ${
-          c.castIndex
-        })`
-      );
-    }
-  );
+  log('\n=== Step 5: Meta Assignment ===');
+  characters = charactersMetaStarringAssignedGet(characters, cards);
+  characters = await charactersMetaRoleAssignedGet(characters);
+  characters = charactersMetaRenderAssignedGet(characters);
+  cards = cardsMetaAssignedGet(cards, characters);
 
-  log('\n=== Step 3: cardsGet ===');
+  characters.forEach((c, i) => {
+    log(`  Char ${i}: ${c.text} role=${c.role} starringIndex=${c.starringIndex} render=${c.render}`);
+  });
 
-  const cards = cardsGet(
-    movieDataBasic.plot,
-    characters
-  );
-
-  log(
-    'Cards count:', cards?.length
-  );
-
-  cards.forEach(
-    (c, i) => {
-
-      log(
-        `  Card ${i}: ${
-          c.text?.substring(0, 60)
-        }... char=${
-          c.character?.text
-        }`
-      );
-    }
-  );
-
-  log('\n=== Step 4: charactersGenderAssignedGet ===');
-
-  const genderedChars = await charactersGenderAssignedGet(
-    characters
-  );
-
-  genderedChars.forEach(
-    (c, i) => {
-
-      log(
-        `  Char ${i}: ${
-          c.text
-        } role=${
-          c.role
-        } actor.gender=${
-          c.actor?.gender
-        } ud=${
-          c.actor?.ud
-        }`
-      );
-    }
-  );
-
-  log('\n=== Step 5: charactersMetaAssignedGet ===');
-
-  const metaChars = await charactersMetaAssignedGet(
-    genderedChars,
-    cards,
-    title
-  );
-
-  metaChars.forEach(
-    (c, i) => {
-
-      log(
-        `  Char ${i}: ${
-          c.text
-        } role=${
-          c.role
-        } starringIndex=${
-          c.starringIndex
-        } roleGroupIndex=${
-          c.roleGroupIndex
-        }`
-      );
-    }
-  );
-
-  log('\n=== Step 6: spoofable ===');
-
-  const finalCards = cardsMetaAssignedGet(
-    cards,
-    metaChars
-  );
-
-  const spoofable = deckSpoofableGet(
-    metaChars,
-    finalCards
-  );
-
-  log(
-    'Spoofable:', spoofable
-  );
+  log('\n=== Step 6: Spoofable ===');
+  const spoofable = deckSpoofableGet(characters, cards);
+  log(`  Spoofable: ${spoofable}`);
 
   process.exit(0);
 };
@@ -178,7 +79,6 @@ const debug = async () => {
 debug()
   .catch(
     (error) => {
-
       // eslint-disable-next-line no-console
       console.error(
         'Debug failed:', error
