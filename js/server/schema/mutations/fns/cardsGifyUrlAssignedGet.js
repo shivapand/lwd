@@ -2,257 +2,53 @@
 
 import nodeFetch from 'node-fetch';
 
-import fnDelayRunFn from './fnDelayRun';
+const GIPHY_API_KEY = 'aJT6CDc1W7E5g5S38tj6STaddrUa75Xx';
 
-const MAX_RETRIES = 1;
+const queryUrlGet = (title, index) => {
 
-const cardsForGifyGet = (
-  cards
-) => {
+  const queryText = `${title} cartoon`;
 
-  return cards.reduce(
-    (
-      cardMemo,
-      card,
-      cardIndex
-    ) => {
+  return `https://api.giphy.com/v1/gifs/search?api_key=${
+    GIPHY_API_KEY
+  }&q=${
+    encodeURIComponent(queryText)
+  }&limit=1&offset=${
+    index
+  }&rating=g`;
+};
 
-      return [
-        ...cardMemo,
-        {
-          ...card,
-          cardIndex
-        }
-      ];
-    },
-    []
+const gifyUrlFromResponseGet = (json) =>
+  json?.data?.[0]?.images?.downsized_still?.url ||
+  json?.data?.[0]?.images?.original_still?.url ||
+  null;
+
+const cardGifyUrlGet = async (title, index) => {
+
+  const url = queryUrlGet(title, index);
+
+  const res = await nodeFetch(url).catch(() => null);
+
+  return (!res?.ok)
+    ? null
+    : gifyUrlFromResponseGet(await res.json().catch(() => null));
+};
+
+export default async (_cards, title) => {
+
+  const results = await Promise.all(
+    _cards.map(
+      (_, index) => cardGifyUrlGet(title, index)
+    )
   );
-};
 
-const queryGet = (
-  text,
-  title,
-  index
-) => {
-
-  const queryText = `
-    ${
-      text
-    } ${
-      title
-    } cartoon
-  `
-    .trim();
-
-  const gifyApiKey =
-    process.env.npm_package_config_GIFY_API_KEY;
-
-  return `
-    https://api.giphy.com/v1/gifs/search?api_key=${
-      gifyApiKey
-    }&q=${
-      encodeURIComponent(
-        queryText
-      )
-    }&limit=1&offset=${
-      index
-    }&rating=g
-  `
-    .trim();
-};
-
-const fnDelayRun = (
-  text,
-  retries
-) => {
-
-  return fnDelayRunFn(
-    cardsFlatlistGifyUrlAssignedGetFn,
-    100,
-    `
-      deckCardsGifyUrlAssignedGet: ${
-        text
+  return _cards.reduce(
+    (memo, card, index) => [
+      ...memo,
+      {
+        ...card,
+        gifyUrl: results[index]
       }
-    `
-      .trim(),
-    text,
-    retries
-  );
-};
-
-const cardsFlatlistGifyUrlAssignedGetFn = (
-  query,
-  retries = 0
-) => {
-
-  return (
-    retries >= MAX_RETRIES
-  )
-    ? Promise.resolve(
-      null
-    )
-    : nodeFetch(
-      query
-    )
-      .then(
-        (
-          res
-        ) => {
-
-          return (res.status === 429)
-            ? { data: [] }
-            : res.json();
-        }
-      )
-      .then(
-        (
-          json
-        ) => {
-
-          const gifyUrl = json.data?.[0]?.images?.[
-            'original_still'
-          ]
-            ?.url;
-
-          return (
-            !gifyUrl
-          )
-            ? fnDelayRun(
-              query,
-              retries + 1
-            )
-            : gifyUrl;
-        }
-      )
-      .catch(
-        () => {
-
-          return fnDelayRun(
-            query,
-            retries + 1
-          );
-        }
-      );
-};
-
-const cardsFlatlistGifyUrlAssignedGet = (
-  cards,
-  title
-) => {
-
-  return cards.reduce(
-    (
-      memo,
-      card,
-      index
-    ) => {
-
-      return memo.then(
-        (
-          res
-        ) => {
-
-          const query = queryGet(
-            card.text,
-            title,
-            index
-          );
-
-          return cardsFlatlistGifyUrlAssignedGetFn(
-            query
-          )
-            .then(
-              (
-                result
-              ) => {
-
-                return [
-                  ...res,
-                  {
-                    ...card,
-                    gifyUrl: result
-                  }
-                ];
-              }
-            );
-        }
-      );
-    },
-    Promise.resolve(
-      []
-    )
-  );
-};
-
-const cardByIndexGet = (
-  cards,
-  cardIndex
-) => {
-
-  return cards.find(
-    (
-      card
-    ) => {
-
-      return (
-        card.cardIndex ===
-        cardIndex
-      );
-    }
-  );
-};
-
-const cardsGifyUrlAssignedGet = (
-  cardsFlatlist,
-  cards
-) => {
-
-  return cards.reduce(
-    (
-      memo,
-      card,
-      cardIndex
-    ) => {
-
-      const _cardsFlatlist = cardByIndexGet(
-        cardsFlatlist,
-        cardIndex
-      );
-
-      return [
-        ...memo,
-        (!_cardsFlatlist)
-          ? card
-          : {
-            ...card,
-            gifyUrl: _cardsFlatlist.gifyUrl
-          }
-      ];
-    },
+    ],
     []
-  );
-};
-
-export default async (
-  _cards,
-  title
-) => {
-
-  let cardsFlatlist = cardsForGifyGet(
-    _cards
-  );
-
-  cardsFlatlist = await cardsFlatlistGifyUrlAssignedGet(
-    cardsFlatlist,
-    title
-  );
-
-  const cards = cardsGifyUrlAssignedGet(
-    cardsFlatlist,
-    _cards
-  );
-
-  return (
-    cards
   );
 };

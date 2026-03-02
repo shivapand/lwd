@@ -64,14 +64,51 @@ const characterImageGet = (
     : character.profileImage || null;
 };
 
-const cardImageGet = (
+const ROLE_PRIORITY = ['hero', 'heroine', 'villain'];
+
+const cardCharacterImageGet = (
   card,
-  imageMap
+  imageMap,
+  splashCharacters
 ) => {
 
+  const tokenRoles = (card.tokens || [])
+    .reduce(
+      (memo, token) =>
+        (token.role && !memo.includes(token.role))
+          ? [...memo, token.role]
+          : memo,
+      []
+    );
+
+  const matchingRole = ROLE_PRIORITY.find(
+    (role) => tokenRoles.includes(role)
+  );
+
+  const matchingCharacter = matchingRole
+    ? splashCharacters.find(
+      (c) => c.role === matchingRole && c.actorImageId
+    )
+    : null;
+
+  return matchingCharacter
+    ? imageMap[matchingCharacter.actorImageId] || null
+    : null;
+};
+
+const cardImageGet = (
+  card,
+  imageMap,
+  splashCharacters
+) => {
+
+  const characterImage = cardCharacterImageGet(
+    card, imageMap, splashCharacters
+  );
+
   return (card.actorImageId)
-    ? imageMap[card.actorImageId] || card.gifyUrl || card.character?.profileImage || null
-    : card.gifyUrl || card.character?.profileImage || null;
+    ? imageMap[card.actorImageId] || characterImage || card.gifyUrl || null
+    : characterImage || card.gifyUrl || null;
 };
 
 export default async (
@@ -155,6 +192,8 @@ export default async (
                         })
                       );
 
+                    const splashCharacters = deck.splash.characters || [];
+
                     const cards = (deck.cards || [])
                       .map(
                         (card) => ({
@@ -168,7 +207,7 @@ export default async (
                             }
                             : null,
                           dualRoleIndex: card.dualRoleIndex,
-                          image: cardImageGet(card, imageMap)
+                          image: cardImageGet(card, imageMap, splashCharacters)
                         })
                       );
 

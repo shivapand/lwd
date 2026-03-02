@@ -1,12 +1,12 @@
 'use strict';
 
-import path from 'path';
-import webpack from 'webpack';
+const path = require('path');
+const webpack = require('webpack');
 
 const mediaAssetsRegExp =
 /\.(otf|eot|svg|ttf|woff|woff2|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/;
 
-export default {
+module.exports = {
   entry: {
     bundle: [
       path.join(

@@ -1,16 +1,19 @@
 'use strict';
 
-import webpackMerge from 'webpack-merge';
+const { merge } = require('webpack-merge');
 
-import webpackConfigBase from './webpackConfigBase';
+const webpackConfigBase = require('./webpackConfigBase');
 
-export default webpackMerge(
+module.exports = merge(
   webpackConfigBase,
   {
     devServer: {
-      proxy: {
-        '*': 'http://localhost:3000'
-      }
+      proxy: [
+        {
+          context: ['**'],
+          target: 'http://localhost:3456'
+        }
+      ]
     },
     module: {
       rules: [

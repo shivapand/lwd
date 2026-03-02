@@ -1,23 +1,22 @@
 'use strict';
 
-import mediawikiFetch from './mediawikiFetch';
+import nodeFetch from 'node-fetch';
 import geminiFetch from './geminiFetch';
 
-const PLACEHOLDER_POSTER =
-  'https://via.placeholder.com/320x480?text=No+Poster';
-
-const posterSummaryUrlGet = (title) =>
-  `https://en.wikipedia.org/api/rest_v1/page/summary/${
-    encodeURIComponent(title)
-  }`;
+const PLACEHOLDER_POSTER = '/poster-fallback.png';
 
 const posterGet = async (title) => {
 
-  const res = await mediawikiFetch(
-    posterSummaryUrlGet(title)
-  );
+  const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
 
-  return res?.thumbnail?.source || PLACEHOLDER_POSTER;
+  const res = await nodeFetch(url, {
+    headers: { 'User-Agent': 'LWD-Demo-Bot (pyratin@gmail.com)' },
+    timeout: 5000
+  }).catch(() => null);
+
+  const json = (res?.ok) ? await res.json().catch(() => null) : null;
+
+  return json?.thumbnail?.source || PLACEHOLDER_POSTER;
 };
 
 const groqPromptGet = (title, plotLimit) =>

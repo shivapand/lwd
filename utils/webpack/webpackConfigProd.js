@@ -1,14 +1,14 @@
 'use strict';
 
-import webpackMerge from 'webpack-merge';
-import MiniCssExtractPlugin 
-  from 'mini-css-extract-plugin';
-import OptimizeCssAssetsWebpackPlugin
-  from 'optimize-css-assets-webpack-plugin';
+const { merge } = require('webpack-merge');
+const MiniCssExtractPlugin
+  = require('mini-css-extract-plugin');
+const OptimizeCssAssetsWebpackPlugin
+  = require('optimize-css-assets-webpack-plugin');
 
-import webpackConfigBase from './webpackConfigBase';
+const webpackConfigBase = require('./webpackConfigBase');
 
-export default webpackMerge(
+module.exports = merge(
   webpackConfigBase,
   {
     plugins: [
