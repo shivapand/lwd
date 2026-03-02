@@ -5,9 +5,9 @@ const sentenceCharactersGet = (sentence, characters) =>
   sentence.tokens.reduce(
     (memo, token) => {
 
-      if (!token.role) {
-        return memo;
-      }
+      return (!token.role)
+        ? memo
+        : (() => {
 
       const character = characters.find(
         (c) => {
@@ -39,6 +39,8 @@ const sentenceCharactersGet = (sentence, characters) =>
             )
           }
         ];
+
+      })();
     },
     []
   );
