@@ -216,4 +216,9 @@ import movieRoute from './routes/movie';
         }
       );
   }
-)();
+)().catch(
+  (error) => {
+    // eslint-disable-next-line no-console
+    console.error('Server startup failed:', error);
+  }
+);
