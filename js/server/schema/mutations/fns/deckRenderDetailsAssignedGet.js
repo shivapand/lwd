@@ -103,65 +103,6 @@ const charactersRenderTextAssignedGet = (
 
 };
 
-const charactersConcatedGet = (
-  _characters
-) => {
-
-  let characters = _characters.reduce(
-    (
-      memo,
-      character
-    ) => {
-
-      const dualRoleIndex = character.dualRoleIndex;
-
-      if (
-        dualRoleIndex >=
-        0
-      ) {
-
-        const renderText = `
-          ${
-            memo[
-              dualRoleIndex
-            ]
-              .renderText
-          } / ${
-            character.renderText
-          }
-        `
-          .trim();
-
-        return [
-          ...memo.slice(
-            0, dualRoleIndex
-          ),
-          {
-            ...memo[
-              dualRoleIndex
-            ],
-            renderText
-          },
-          ...memo.slice(
-            dualRoleIndex + 1
-          ),
-          character
-        ];
-      }
-
-      return [
-        ...memo,
-        character,
-      ];
-    },
-    []
-  );
-
-  return (
-    characters
-  );
-};
-
 const charactersSortedBySplashIndexGet = (
   _characters
 ) => {
@@ -229,10 +170,6 @@ const charactersRenderDetailAssignedGet = (
     _characters
   );
 
-  characters = charactersConcatedGet(
-    characters
-  );
-
   characters = charactersSortedBySplashIndexGet(
     characters
   );
@@ -244,28 +181,32 @@ const charactersRenderDetailAssignedGet = (
 
 const cardTextGet = (
   {
-    text: _text,
-    tokens
+    text,
+    characters: cardCharacters
   }
 ) => {
 
-  return (!tokens)
-    ? _text
-    : tokens.reduce(
-      (memo, token) => {
+  return (!cardCharacters?.length)
+    ? text
+    : [...cardCharacters]
+      .sort(
+        (a, b) => b.text.length - a.text.length
+      )
+      .reduce(
+        (memo, character) => {
 
-        const html = (['hero', 'heroine', 'villain'].includes(token.role))
-          ? `<b>${token.text}</b>`
-          : token.text;
-
-        const needsSpace = memo.length > 0 &&
-          !memo.endsWith(' ') &&
-          !token.text.startsWith(' ');
-
-        return `${memo}${needsSpace ? ' ' : ''}${html}`;
-      },
-      ''
-    );
+          return (
+            !['hero', 'heroine', 'villain']
+              .includes(character.role)
+          )
+            ? memo
+            : memo.replace(
+              character.text,
+              `<b>${character.text}</b>`
+            );
+        },
+        text
+      );
 };
 
 const cardGet = (

@@ -17,7 +17,6 @@ import {
   useIsMounted
 } from 'fns';
 import downloadjs from 'downloadjs';
-import Loading from 'Components/Loading';
 
 const ShareDownload = (
   props
@@ -168,7 +167,10 @@ const ShareDownload = (
   const loadingIconRender = () => {
 
     return (
-      <Loading />
+      <span
+        className = 'spinner-border spinner-border-sm text-light'
+        role = 'status'
+      />
     );
   };
 

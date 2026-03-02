@@ -34,8 +34,7 @@ export default (
             character: {
               ...card.character,
               role: character.role
-            },
-            dualRoleIndex: character.dualRoleIndex
+            }
           }
         ];
       }

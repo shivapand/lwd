@@ -72,17 +72,17 @@ const cardCharacterImageGet = (
   splashCharacters
 ) => {
 
-  const tokenRoles = (card.tokens || [])
+  const characterRoles = (card.characters || [])
     .reduce(
-      (memo, token) =>
-        (token.role && !memo.includes(token.role))
-          ? [...memo, token.role]
+      (memo, c) =>
+        (c.role && !memo.includes(c.role))
+          ? [...memo, c.role]
           : memo,
       []
     );
 
   const matchingRole = ROLE_PRIORITY.find(
-    (role) => tokenRoles.includes(role)
+    (role) => characterRoles.includes(role)
   );
 
   const matchingCharacter = matchingRole
@@ -187,7 +187,6 @@ export default async (
                         (character) => ({
                           renderText: character.renderText,
                           role: character.role,
-                          dualRoleIndex: character.dualRoleIndex,
                           image: characterImageGet(character, imageMap)
                         })
                       );
@@ -202,11 +201,9 @@ export default async (
                             ? {
                               renderText: card.character.renderText,
                               role: card.character.role,
-                              dualRoleIndex: card.character.dualRoleIndex,
                               image: characterImageGet(card.character, imageMap)
                             }
                             : null,
-                          dualRoleIndex: card.dualRoleIndex,
                           image: cardImageGet(card, imageMap, splashCharacters)
                         })
                       );

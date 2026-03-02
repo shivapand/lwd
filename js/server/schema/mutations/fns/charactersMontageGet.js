@@ -25,7 +25,8 @@ const charactersBase64AssignedGetFn = (
 ) => {
 
   if (
-    !character.render
+    !character.render ||
+    !character.actorImageId
   ) {
 
     return Promise.resolve(
@@ -44,15 +45,16 @@ const charactersBase64AssignedGetFn = (
   )
     .then(
       (
-        {
-          base64
-        }
+        res
       ) => {
 
         return (
-          base64
+          res?.base64 || null
         );
       }
+    )
+    .catch(
+      () => null
     );
 };
 
@@ -126,16 +128,7 @@ const charactersFilterTypeAssignedGetFn = (
         'giphy'
       );
 
-    case (
-      character.dualRoleIndex >=
-      0
-    ) :
-
-      return (
-        'dualRole'
-      );
-
-    default : 
+    default :
 
       return (
         null
@@ -252,9 +245,9 @@ const characterBase64sGet = (
                 }
               `
                 .trim(),
-              outputResGet() / 4,
-              46,
-              5
+              outputResGet() / 3.5,
+              38,
+              4
             )
               .then(
                 (
@@ -509,6 +502,10 @@ export default async (
   let characters = await charactersBase64AssignedGet(
     _characters,
     db
+  );
+
+  characters = characters.filter(
+    (character) => character.base64
   );
 
   characters = charactersFilterTypeAssignedGet(

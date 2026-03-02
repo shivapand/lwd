@@ -74,9 +74,7 @@ export default async (
             profileImage: castMember.profileImage,
             actor: castMember.actor,
             castIndex,
-            ...(castMember.castRole
-              ? { role: castMember.castRole }
-              : {})
+            role: castMember.castRole || 'unknown'
           }
         ];
     },

@@ -200,7 +200,8 @@ const moviePosterFilterAppliedGet = (
 };
 
 const finalCompositedGetFn = (
-  finalCompositeMiffStreamsConcated
+  finalCompositeMiffStreamsConcated,
+  offsetY
 ) => {
 
   return new Promise(
@@ -210,7 +211,7 @@ const finalCompositedGetFn = (
     ) => {
 
       const proc = exec(
-        'convert miff:- -gravity north -composite jpeg:-',
+        `convert miff:- -gravity south -geometry +0+${offsetY} -composite jpeg:-`,
         {
           encoding: 'base64'
         },
@@ -289,8 +290,15 @@ const finalCompositedGet = async (
       ]
     );
 
+  const factor = res / 480;
+
+  const textBlockOffset = Math.round(
+    (4.5 * pointsize + 2 * border) * factor
+  ) + 4;
+
   let splash = await finalCompositedGetFn(
-    finalCompositeMiffStreamsConcated
+    finalCompositeMiffStreamsConcated,
+    textBlockOffset
   );
 
   splash = await base64TextCompositedGet(

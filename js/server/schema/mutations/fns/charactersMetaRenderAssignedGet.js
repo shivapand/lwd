@@ -42,10 +42,6 @@ const charactersRenderAssignedGet = (
       if (
         (_character.starringCardIndexes ||
         ['hero', 'villain', 'heroine'].includes(_character.role)) &&
-        (
-          _character.dualRoleIndex ===
-          -1
-        ) &&
         !exists
       ) {
         

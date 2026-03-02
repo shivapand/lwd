@@ -20,14 +20,6 @@ const filtersGet = (
       return [
         'saturation 0.0'
       ];
-
-    case (
-      'dualRole'
-    ) :
-
-      return [
-        'huemap -h 0,20 -t 60,60'
-      ];
   }
 };
 

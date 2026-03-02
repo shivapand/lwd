@@ -20,7 +20,6 @@ import {
 import movieSearch from 
   '../movieSearch';
 import {
-  movieFindOne,
   movieCreate as movieCreateFn
 } from '~/js/server/data/movie';
 
@@ -33,13 +32,15 @@ const deckCachedHandledGet = (
   db
 ) => {
 
-  return deckGetFn(
-    deck,
-    spoofInput,
-    genre,
-    undefined,
-    db
-  );
+  return (deck?.cards?.[0]?.renderText)
+    ? Promise.resolve(deck)
+    : deckGetFn(
+      deck,
+      spoofInput,
+      genre,
+      undefined,
+      db
+    );
 };
 
 const tmd5000moviesTitleByIndexGet = async (
@@ -234,16 +235,20 @@ const deckRandomGet = async (
       0
     ];
 
-  deck = await deckCachedHandledGet(
-    deck,
-    spoofInput,
-    genre,
-    db
-  );
-
-  return (
-    deck
-  );
+  return (!deck)
+    ? deckGetFn(
+      'The Matrix',
+      spoofInput,
+      genre,
+      undefined,
+      db
+    )
+    : deckCachedHandledGet(
+      deck,
+      spoofInput,
+      genre,
+      db
+    );
 };
 
 const movieCreate = async (
@@ -269,7 +274,9 @@ const movieCreate = async (
 
   return movieCreateFn(
     {
-      _id: new ObjectID()
+      title: movie.title,
+      genre: movie.genre,
+      hero: movie.hero
     },
     {
       $set: {
@@ -345,13 +352,34 @@ const deckGet = async (
 
     default :
 
-      return deckGetFn(
-        text,
-        spoofInput,
-        genre,
-        plotLimit,
+      return deckFindOne(
+        {
+          'splash.title': text
+        },
+        undefined,
         db
-      );
+      )
+        .then(
+          (
+            existingDeck
+          ) => {
+
+            return (existingDeck)
+              ? deckCachedHandledGet(
+                existingDeck,
+                spoofInput,
+                genre,
+                db
+              )
+              : deckGetFn(
+                text,
+                spoofInput,
+                genre,
+                plotLimit,
+                db
+              );
+          }
+        );
   }
 };
 
@@ -363,17 +391,6 @@ const movieGet = async (
 ) => {
 
   const movie = (
-    await movieFindOne(
-      {
-        title: deck.splash.title,
-        hero: spoofInput.hero,
-        genre
-      },
-      undefined,
-      db
-    )
-  ) ||
-  (
     await gifRenderedGet(
       deck,
       spoofInput.hero,
@@ -458,7 +475,13 @@ const outputCreatedGet = (
     case (
       !createFlag
     ) :
+
+      return Promise.resolve(
+        output
+      );
+
     case (
+      !!output.base64 &&
       !!output._id
     ) :
 
@@ -478,16 +501,24 @@ const outputCreatedGet = (
 
     default :
 
-      return deckCreateFn(
-        {
-          _id: new ObjectID()
-        },
-        {
-          $set: output
-        },
-        undefined,
-        db
-      );
+      return (() => {
+
+        const {
+          _id,
+          ...deckData
+        } = output;
+
+        return deckCreateFn(
+          {
+            'splash.title': output.splash?.title
+          },
+          {
+            $set: deckData
+          },
+          undefined,
+          db
+        );
+      })();
   }
 };
 

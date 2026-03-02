@@ -66,7 +66,7 @@ export default async (
           -font "/media/fonts/Muli-Italic-VariableFont_wght.ttf"
           pango:"${
             text
-          }" 
+          }"
           -bordercolor "#000"
           -border ${
             textBorder * factor

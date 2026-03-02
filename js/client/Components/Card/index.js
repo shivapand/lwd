@@ -28,15 +28,6 @@ const filterGet = (
       return (
         'grayscale(100%)'
       );
-
-    case (
-      card.dualRoleIndex >=
-      0
-    ) :
-
-      return (
-        'hue-rotate(20deg)'
-      );
   }
 };
 

@@ -20,7 +20,7 @@ const gifGetFn = (
     ) => {
 
       const proc = exec(
-        'convert -loop 0 -delay 1000 miff:- gif:-',
+        'convert -loop 0 -delay 500 miff:- gif:-',
         {
           encoding: 'base64'
         },

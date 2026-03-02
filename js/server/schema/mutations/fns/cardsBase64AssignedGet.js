@@ -25,13 +25,11 @@ const actorImageGet = (
   )
     .then(
       (
-        {
-          base64
-        }
+        res
       ) => {
 
         return (
-          base64
+          res?.base64 || null
         );
       }
     );
@@ -77,16 +75,31 @@ const cardsBase64AssignedGetFn = (
   db
 ) => {
 
-  return (
-    actorImageId
-  ) ?
-    actorImageGet(
-      actorImageId,
-      db
+  switch (true) {
+
+    case (
+      !!actorImageId
     ) :
-    gifyImageGet(
-      gifyUrl
-    );
+
+      return actorImageGet(
+        actorImageId,
+        db
+      );
+
+    case (
+      !!gifyUrl
+    ) :
+
+      return gifyImageGet(
+        gifyUrl
+      );
+
+    default :
+
+      return Promise.resolve(
+        null
+      );
+  }
 };
 
 export default (

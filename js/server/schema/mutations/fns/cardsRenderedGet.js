@@ -28,16 +28,7 @@ const cardsFilterTypeAssignedGetFn = (
         'giphy'
       );
 
-    case (
-      card.dualRoleIndex >=
-      0
-    ) :
-
-      return (
-        'dualRole'
-      );
-
-    default : 
+    default :
 
       return (
         null
@@ -176,6 +167,10 @@ export default async (
   let cards = await cardsBase64AssignedGet(
     _cards,
     db
+  );
+
+  cards = cards.filter(
+    (card) => card.base64
   );
 
   cards = cardsFilterTypeAssignedGet(

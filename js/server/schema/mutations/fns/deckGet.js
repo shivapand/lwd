@@ -2,15 +2,22 @@
 
 import movieDataBasicGet from '../fns/movieDataBasicGet';
 import charactersGet from '../fns/charactersGet';
-import cardsGet from '../fns/cardsGet';
-import charactersGenderAssignedGet
-  from './charactersGenderAssignedGet';
-import charactersMetaAssignedGet 
-  from './charactersMetaAssignedGet';
+import cardsCharactersAssignedGet
+  from './cardsCharactersAssignedGet';
+import cardsCharacterAssignedGet
+  from './cardsCharacterAssignedGet';
+import charactersMetaStarringAssignedGet
+  from './charactersMetaStarringAssignedGet';
+import charactersMetaRoleAssignedGet
+  from './charactersMetaRoleAssignedGet';
+import charactersMetaRenderAssignedGet
+  from './charactersMetaRenderAssignedGet';
 import cardsMetaAssignedGet from './cardsMetaAssignedGet';
 import deckSpoofableGet
   from './deckSpoofableGet';
-import deckSpoofedGet from './deckSpoofedGet';
+import deckCharactersSpoofedGet
+  from './deckCharactersSpoofedGet';
+import deckCardsSpoofedGet from './deckCardsSpoofedGet';
 import deckActorImageIdsAssignedGet
   from './deckActorImageIdsAssignedGet';
 import deckRenderDetailsAssignedGet
@@ -54,18 +61,27 @@ const deckPreBuiltGet = async (
     movieDataBasic.plot
   );
 
-  let cards = cardsGet(
+  let cards = cardsCharactersAssignedGet(
     movieDataBasic.plot,
     characters
   );
 
-  characters = await charactersGenderAssignedGet(
+  cards = cardsCharacterAssignedGet(
+    cards,
     characters
   );
 
-  characters = await charactersMetaAssignedGet(
+  characters = charactersMetaStarringAssignedGet(
     characters,
     cards
+  );
+
+  characters = await charactersMetaRoleAssignedGet(
+    characters
+  );
+
+  characters = charactersMetaRenderAssignedGet(
+    characters
   );
 
   cards = cardsMetaAssignedGet(
@@ -114,14 +130,27 @@ const deckPostProcessedGet = async (
     );
   }
 
-  deck = deckSpoofedGet(
-    deck,
+  const spoofedCharacters = deckCharactersSpoofedGet(
+    deck.splash.characters,
     spoofInput
   );
 
+  const spoofedCards = deckCardsSpoofedGet(
+    deck.cards,
+    spoofedCharacters
+  );
+
+  deck = {
+    ...deck,
+    splash: {
+      ...deck.splash,
+      characters: spoofedCharacters
+    },
+    cards: spoofedCards
+  };
+
   deck = await deckActorImageIdsAssignedGet(
     deck,
-    genre,
     db
   )
     .catch(
