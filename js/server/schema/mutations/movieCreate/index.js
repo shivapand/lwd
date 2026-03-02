@@ -32,15 +32,13 @@ const deckCachedHandledGet = (
   db
 ) => {
 
-  return (deck?.cards?.[0]?.renderText)
-    ? Promise.resolve(deck)
-    : deckGetFn(
-      deck,
-      spoofInput,
-      genre,
-      undefined,
-      db
-    );
+  return deckGetFn(
+    deck,
+    spoofInput,
+    genre,
+    undefined,
+    db
+  );
 };
 
 const tmd5000moviesTitleByIndexGet = async (
