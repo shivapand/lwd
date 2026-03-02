@@ -153,28 +153,36 @@ const moviePosterBase64GetFn = (
   );
 };
 
-const moviePosterBase64Get = (
-  moviePoster
+const moviePosterLocalGet = (
+  localPath
 ) => {
 
-  if (
-    !moviePoster
-  ) {
+  const filePath = path.join(
+    process.cwd(),
+    'media',
+    localPath
+  );
 
-    return base64BlankGet();
-  }
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
 
-  return nodeFetch(
-    moviePoster
+      return fs.readFile(
+        filePath,
+        (
+          error,
+          buffer
+        ) => {
+
+          return (error)
+            ? reject(error)
+            : resolve(buffer);
+        }
+      );
+    }
   )
-    .then(
-      (
-        res
-      ) => {
-
-        return res.buffer();
-      }
-    )
     .then(
       (
         buffer
@@ -185,6 +193,48 @@ const moviePosterBase64Get = (
         );
       }
     );
+};
+
+const moviePosterBase64Get = (
+  moviePoster
+) => {
+
+  switch (true) {
+
+    case !moviePoster:
+
+      return base64BlankGet();
+
+    case !moviePoster.startsWith('http'):
+
+      return moviePosterLocalGet(
+        moviePoster
+      );
+
+    default:
+
+      return nodeFetch(
+        moviePoster
+      )
+        .then(
+          (
+            res
+          ) => {
+
+            return res.buffer();
+          }
+        )
+        .then(
+          (
+            buffer
+          ) => {
+
+            return moviePosterBase64GetFn(
+              buffer
+            );
+          }
+        );
+  }
 };
 
 const moviePosterFilterAppliedGet = (
