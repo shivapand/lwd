@@ -36,7 +36,7 @@ const Card = (
 ) => {
 
   const imageUrl = props.card.image ||
-    '/placeholder.jpeg';
+    '/placeholder.png';
 
   const [
     loading,
