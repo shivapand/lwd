@@ -3,8 +3,8 @@
 import {
   genreGet,
   heroGet,
-  outputResGet,
-  fbAppIdGet
+  fbAppIdGet,
+  hostUrlGet
 } from './variable';
 import movieCreate 
   from '~/js/server/schema/mutations/movieCreate';
@@ -51,30 +51,45 @@ export default async (
       }
     );
 
-  const imageUrl = movie.url.replace(
-    /\s/g,
-    '%20'
-  );
+  const posterUrl = movie.path
+    .replace(
+      /^\/output\//,
+      '/poster/'
+    )
+    .replace(
+      /\.gif$/,
+      '.jpg'
+    );
+
+  const posterAbsoluteUrl = `${
+    hostUrlGet(req)
+  }${
+    posterUrl
+  }`
+    .replace(
+      /\s/g,
+      '%20'
+    );
+
+  const pageUrl = `${
+    hostUrlGet(req)
+  }${
+    req.originalUrl
+  }`;
 
   return res.render(
     'index',
     {
       fbAppId: fbAppIdGet(),
-      title: `
-        ${
-          movie.hero
-        } in ${
-          movie.title
-        }
-      `,
+      title: `${movie.hero} in ${movie.title}`,
       description: movie.description,
       type: 'article',
-      url: imageUrl,
+      url: pageUrl,
       image: {
-        url: imageUrl,
-        type: 'video.other',
-        width: outputResGet(),
-        height: outputResGet()
+        url: posterAbsoluteUrl,
+        type: 'image/jpeg',
+        width: 1200,
+        height: 627
       }
     }
   );

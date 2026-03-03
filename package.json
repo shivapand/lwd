@@ -22,7 +22,8 @@
     "prebuild": "rm -Rrf dist",
     "build": "npm run build:server",
     "postbuild": "npm run build:client",
-    "start": "env NODE_ENV=production node_modules/forever/bin/forever -c node dist/server"
+    "start": "env NODE_ENV=production node_modules/forever/bin/forever -c node dist/server",
+    "dev:tunnel": "cloudflared tunnel --url http://localhost:3456"
   },
   "author": "",
   "license": "ISC",

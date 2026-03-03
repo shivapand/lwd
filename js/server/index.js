@@ -22,6 +22,8 @@ import deckTitleRouteHandle
   from './fns/deckTitleRouteHandle';
 import outputGifRouteHandle
   from './fns/outputGifRouteHandle';
+import outputPosterRouteHandle
+  from './fns/outputPosterRouteHandle';
 import searchRoute from './routes/search';
 import deckRoute from './routes/deck';
 import movieRoute from './routes/movie';
@@ -71,6 +73,21 @@ import movieRoute from './routes/movie';
             req,
             res,
             next
+          );
+        }
+      )
+
+      .get(
+        '/poster/:poster.jpg',
+        (
+          req,
+          res
+        ) => {
+
+          return outputPosterRouteHandle(
+            db,
+            req,
+            res
           );
         }
       )

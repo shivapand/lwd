@@ -143,9 +143,11 @@ const DeckPage = () => {
     text
   ) => {
 
+    const title = deck?.splash?.title || deckTitle;
+
     return navigate(
       `/deck/${
-        encodeURIComponent(deckTitle)
+        encodeURIComponent(title)
       }?genre=${
         encodeURIComponent(genre)
       }&hero=${
