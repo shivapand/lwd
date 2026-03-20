@@ -60,11 +60,11 @@ const SplashSpoofInput = (
 
     return (
       <form
-        className = 'w-50'
+        className = 'w-100'
         css = {
           css(
             {
-              maxWidth: '200px'
+              maxWidth: '400px'
             }
           )
         }

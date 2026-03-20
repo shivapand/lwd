@@ -118,10 +118,15 @@ const Carousel = (
             css(
               {
                 position: 'absolute',
-                zIndex: 1,
+                zIndex: 10,
                 top: '50%',
                 transform: 'translateY(-50%)',
-                left: 10
+                left: 10,
+                opacity: 0.7,
+                transition: 'opacity 0.3s ease',
+                '&:hover': {
+                  opacity: 1
+                }
               }
             )
           }
@@ -137,7 +142,8 @@ const Carousel = (
               css(
                 {
                   padding: '5px 7px 0px 5px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.25)'
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
                 }
               )
             }
@@ -161,10 +167,15 @@ const Carousel = (
             css(
               {
                 position: 'absolute',
-                zIndex: 1,
+                zIndex: 10,
                 top: '50%',
                 transform: 'translateY(-50%)',
-                right: 10
+                right: 10,
+                opacity: 0.7,
+                transition: 'opacity 0.3s ease',
+                '&:hover': {
+                  opacity: 1
+                }
               }
             )
           }
@@ -180,7 +191,8 @@ const Carousel = (
               css(
                 {
                   padding: '5px 5px 0px 7px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.25)'
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
                 }
               )
             }
