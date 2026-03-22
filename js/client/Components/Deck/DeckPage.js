@@ -14,6 +14,7 @@ import {
 import {
   css
 } from '@emotion/core';
+import { io } from 'socket.io-client';
 
 import Loading from 'Components/Loading';
 import Carousel from 'Components/Carousel';
@@ -69,26 +70,22 @@ const DeckPage = () => {
   );
 
   useEffect(() => {
-    if (!loading) return;
+    
+    // Connect to the Socket.io server (uses the same host/port)
+    const socket = io();
 
-    const messages = [
-      'Reading Wikipedia archives...',
-      'Embedding plot context...',
-      'Retrieving relevant roast material...',
-      'Consulting Groq for the perfect roast...',
-      'Identifying hero and villain...',
-      'Searching Giphy for the best reactions...',
-      'Rendering cinematic slideshow...'
-    ];
+    socket.on('statusUpdate', (data) => {
+      // Only update the message if it's for the movie we are currently trying to load
+      // Or if it's a random search, we just show the updates as they come
+      if (deckTitle === 'random' || data.title === deckTitle) {
+        loadingMessageSet(data.message);
+      }
+    });
 
-    let index = 0;
-    const interval = setInterval(() => {
-      index = (index + 1) % messages.length;
-      loadingMessageSet(messages[index]);
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [loading]);
+    return () => {
+      socket.disconnect();
+    };
+  }, [deckTitle]);
 
   const [
     error,
@@ -248,6 +245,12 @@ const DeckPage = () => {
             rounded rounded-lg
           `
         }
+        css = {
+          css({
+            borderRadius: '1.5rem',
+            overflow: 'hidden'
+          })
+        }
       >
         <Carousel
           initialIndex = { deck?._id }
@@ -277,6 +280,10 @@ const DeckPage = () => {
                             : ''
                         }`
                       }
+                      css={css({
+                        borderRadius: '1.5rem',
+                        overflow: 'hidden'
+                      })}
                     >
                       {
                         slide

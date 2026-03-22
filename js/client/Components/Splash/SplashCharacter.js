@@ -79,7 +79,7 @@ const SplashCharacter = (
             position: 'relative',
             width: props.splashCharacterElementSize,
             height: props.splashCharacterElementSize,
-            borderRadius: '1rem',
+            borderRadius: '1.5rem',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             backgroundImage: `

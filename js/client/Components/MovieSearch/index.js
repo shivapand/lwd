@@ -25,10 +25,12 @@ import MovieSearchResultItem from './MovieSearchResultItem';
 
 const dropdownStyle = css({
   '& .form-control': {
-    borderRadius: 0,
+    borderRadius: '1.5rem',
     backgroundColor: '#1e1e22',
     color: '#eee',
     borderColor: '#333',
+    paddingLeft: '1.5rem',
+    paddingRight: '1.5rem',
     '&::placeholder': {
       color: '#888'
     },
@@ -42,9 +44,11 @@ const dropdownStyle = css({
   '& .dropdown-menu': {
     backgroundColor: '#1e1e22',
     border: '1px solid #333',
-    borderRadius: '4px',
-    padding: '4px 0',
-    marginTop: '2px',
+    borderRadius: '1.5rem',
+    padding: '0.8rem 0',
+    marginTop: '0.5rem',
+    overflow: 'hidden',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
     scrollbarColor: '#333 #1e1e22',
     '&::-webkit-scrollbar': {
       width: '8px'
