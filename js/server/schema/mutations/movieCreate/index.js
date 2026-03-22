@@ -202,13 +202,34 @@ const deckGet = async (
 
     default :
 
-      return deckGetFn(
-        text,
-        spoofInput,
-        genre,
-        plotLimit,
+      return deckFindOne(
+        {
+          'splash.title': text
+        },
+        undefined,
         db
-      );
+      )
+        .then(
+          (
+            existingDeck
+          ) => {
+
+            return (existingDeck)
+              ? deckCachedHandledGet(
+                existingDeck,
+                spoofInput,
+                genre,
+                db
+              )
+              : deckGetFn(
+                text,
+                spoofInput,
+                genre,
+                plotLimit,
+                db
+              );
+          }
+        );
   }
 };
 
@@ -258,13 +279,23 @@ const outputGet = async (
   db
 ) => {
 
-  const deck = await deckGet(
-    text,
-    spoofInput,
-    genre,
-    plotLimit,
-    db
-  );
+  const deck = (
+    outputType === 'deck'
+  )
+    ? await deckGetFn(
+      text,
+      spoofInput,
+      genre,
+      plotLimit,
+      db
+    )
+    : await deckGet(
+      text,
+      spoofInput,
+      genre,
+      plotLimit,
+      db
+    );
 
   switch (
     true
