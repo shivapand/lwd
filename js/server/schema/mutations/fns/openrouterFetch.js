@@ -11,7 +11,7 @@ const MAX_RETRIES = 3;
 
 const openrouterFetch = async (prompt, attempt = 0) => {
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER;
 
   if (!apiKey) {
     // eslint-disable-next-line no-console
