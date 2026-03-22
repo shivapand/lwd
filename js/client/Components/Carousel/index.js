@@ -72,7 +72,7 @@ const Carousel = (
         );
 
       if (typeof props.initialIndex !== 'undefined') {
-        $(carouselRef.current).carousel(props.initialIndex);
+        $(carouselRef.current).carousel(0);
       }
     },
     [
