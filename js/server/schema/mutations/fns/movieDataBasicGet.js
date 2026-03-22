@@ -181,17 +181,25 @@ export default async (title, plotLimit) => {
     ? ragResults.map((r) => r.text).join('\n\n')
     : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
 
-  console.log(`[Groq] START: Requesting roast from Llama for "${title}"...`);
+  console.log(`[Groq] START: Requesting roast and poster for "${title}"...`);
   const [poster, llmResult] = await Promise.all([
-    posterGet(title),
-    groqFetch(groqPromptGet(title, plotLimit, ragContext))
+    posterGet(title).then(res => {
+      console.log(`[Groq] Poster fetched for "${title}".`);
+      return res;
+    }),
+    geminiFetch(groqPromptGet(title, plotLimit, ragContext))
+      .then(res => {
+        console.log(`[Groq] LLM Result received for "${title}".`);
+        return res;
+      })
       .catch((error) => {
         // eslint-disable-next-line no-console
         console.error('Groq Fetch Error:', error);
         return null;
       })
   ]);
-  console.log(`[Groq] COMPLETED: Received response for "${title}".`);
+  console.log(`[Groq] COMPLETED: Both tasks finished for "${title}".`);
+
 
   return (!llmResult?.cast?.length || !llmResult?.sentences?.length)
     ? null
