@@ -31,10 +31,11 @@ ${ragContext}
 
 Style Guide for your Roast:
 1. Be brutally honest about how silly the premise is.
-2. Use metaphors involving mundane, annoying things (e.g., "like a dial-up modem in a hurricane").
-3. Describe character motivations as if they are toddlers making bad decisions.
-4. If there is a "chosen one" trope, treat it like an HR mistake.
+2. Use creative, unexpected metaphors involving mundane, annoying modern life frustrations (e.g. bureaucracy, bad tech, awkward social situations).
+3. Frame character motivations as incredibly poor life choices or professional incompetence.
+4. Treat epic tropes (like "the prophecy" or "the mission") as if they are low-stakes office politics or retail shift drama.
 5. Use deadpan sarcasm and dry humor.
+6. VARIETY MANDATE: Never repeat the same joke or metaphor across different movies. Each roast must be uniquely tailored to the specific context provided.
 
 MANDATORY ROLE TAGGING:
 - You MUST identify exactly ONE "hero", exactly ONE "heroine", and exactly ONE "villain".
@@ -50,7 +51,7 @@ Return JSON:
     { "actor": "Leonardo DiCaprio", "character": "Dom Cobb" }
   ],
   "sentences": [
-    [{"text": "Dom", "role": "hero"}, {"text": " steals dreams like WiFi."}]
+    [{"text": "CharacterName", "role": "hero"}, {"text": " makes a series of questionable life choices."}]
   ]
 }
 
