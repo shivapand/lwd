@@ -253,7 +253,7 @@ const DeckPage = () => {
         }
       >
         <Carousel
-          initialIndex = { deck._id }
+          initialIndex = { `${deckTitle}-${hero}` }
         >
           {
             [
