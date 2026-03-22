@@ -2,7 +2,6 @@
 
 import nodeFetch from 'node-fetch';
 import groqFetch from './groqFetch';
-import openrouterFetch from './openrouterFetch';
 import movieRagGet from './movieRagGet';
 import { broadcastStatus } from '~/js/server/fns/statusEmitter';
 
@@ -180,20 +179,10 @@ export default async (title, plotLimit) => {
       console.log(`[LLM] Poster fetched for "${title}".`);
       return res;
     }),
-    // Try OpenRouter first, fallback to Groq
-    openrouterFetch(groqPromptGet(title, plotLimit, ragContext))
-      .then(async (res) => {
-        if (res && res.cast && res.sentences) {
-          console.log(`[LLM] OpenRouter Result received for "${title}".`);
-          return res;
-        }
-        
-        console.warn(`[LLM] OpenRouter failed or returned invalid schema, falling back to Groq for "${title}"...`);
-        return groqFetch(groqPromptGet(title, plotLimit, ragContext))
-          .then(groqRes => {
-            if (groqRes) console.log(`[LLM] Groq Fallback successful for "${title}".`);
-            return groqRes;
-          });
+    groqFetch(groqPromptGet(title, plotLimit, ragContext))
+      .then(res => {
+        if (res) console.log(`[LLM] Groq Result received for "${title}".`);
+        return res;
       })
       .catch((error) => {
         // eslint-disable-next-line no-console
@@ -203,12 +192,9 @@ export default async (title, plotLimit) => {
   ]);
   console.log(`[LLM] COMPLETED: Both tasks finished for "${title}".`);
 
-  // Handle case where BOTH failed (rate limited or error)
+  // Handle case where LLM failed (rate limited or error)
   if (!llmResult?.cast?.length || !llmResult?.sentences?.length) {
-    console.warn(`[LLM] CRITICAL: All providers failed for "${title}". Providing fallback data.`);
-    if (llmResult) {
-      console.warn(`[LLM] Received data but it was missing keys: ${Object.keys(llmResult).join(', ')}`);
-    }
+    console.warn(`[LLM] CRITICAL: Groq failed for "${title}". Providing fallback data.`);
     
     return {
       title,
@@ -224,18 +210,18 @@ export default async (title, plotLimit) => {
       ],
       plot: [
         {
-          text: "Both AI providers returned invalid data or are rate-limited.",
-          tokens: [{ text: "Both AI providers returned invalid data or are rate-limited." }],
+          text: "Groq is currently taking a coffee break (Rate Limited).",
+          tokens: [{ text: "Groq is currently taking a coffee break (Rate Limited)." }],
           sentenceIndex: 0
         },
         {
-          text: "Wikipedia context was found, but the roast generation failed.",
-          tokens: [{ text: "Wikipedia context was found, but the roast generation failed." }],
+          text: "Please wait a few minutes before trying this movie again.",
+          tokens: [{ text: "Please wait a few minutes before trying this movie again." }],
           sentenceIndex: 1
         },
         {
-          text: "Please try again in a few moments.",
-          tokens: [{ text: "Please try again in a few moments." }],
+          text: "Our AI brain is currently overloaded with requests.",
+          tokens: [{ text: "Our AI brain is currently overloaded with requests." }],
           sentenceIndex: 2
         }
       ]
