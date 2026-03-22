@@ -14,63 +14,88 @@ import {
  */
 const movieRagGet = async (title, queryText = '') => {
 
-  // eslint-disable-next-line no-console
-  console.log(`[RAG] Fetching Wikipedia for "${title}"...`);
-
-  const wikiText = await wikiTextGet(title);
-
-  if (!wikiText) {
+  try {
     // eslint-disable-next-line no-console
-    console.warn(`[RAG] No Wikipedia data found for "${title}"`);
+    console.log(`[RAG] Fetching Wikipedia for "${title}"...`);
+
+    const wikiText = await wikiTextGet(title);
+
+    if (!wikiText) {
+      // eslint-disable-next-line no-console
+      console.warn(`[RAG] No Wikipedia data found for "${title}"`);
+      return [];
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`[RAG] Chunking text (${wikiText.length} chars)...`);
+
+    const chunks = textChunk(wikiText, 800, 100);
+
+    // eslint-disable-next-line no-console
+    console.log(`[RAG] Generating embeddings for ${chunks.length} chunks...`);
+
+    const embeddings = await embeddingsGet(chunks);
+
+    if (!Array.isArray(embeddings) || embeddings.length === 0) {
+      console.error('[RAG] Failed to get valid embeddings for chunks');
+      return [];
+    }
+
+    if (!queryText) {
+      return chunks.slice(0, 3).map((text, i) => ({
+        text,
+        score: 1.0,
+        index: i
+      }));
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`[RAG] Generating embedding for query: "${queryText}"`);
+
+    const queryEmbeddings = await embeddingsGet([queryText]);
+    
+    if (!Array.isArray(queryEmbeddings) || !queryEmbeddings[0]) {
+      console.error('[RAG] Failed to get valid embedding for query');
+      return [];
+    }
+
+    const queryEmbedding = queryEmbeddings[0];
+
+    // eslint-disable-next-line no-console
+    console.log('[RAG] Calculating similarity and ranking chunks...');
+
+    const results = chunks.map((text, i) => {
+
+      const chunkEmbedding = embeddings[i];
+      
+      if (!Array.isArray(chunkEmbedding) || !Array.isArray(queryEmbedding)) {
+        return { text, score: 0, index: i };
+      }
+
+      const similarity = cosineSimilarity(queryEmbedding, chunkEmbedding);
+
+      return {
+        text,
+        score: isNaN(similarity) ? 0 : similarity,
+        index: i
+      };
+    });
+
+    // Sort by similarity descending
+    results.sort((a, b) => b.score - a.score);
+
+    const topResults = results.slice(0, 5);
+    
+    // eslint-disable-next-line no-console
+    console.log(`[RAG] COMPLETED: Found ${topResults.length} relevant chunks.`);
+
+    return topResults;
+
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[RAG] Critical Error:', error.message);
     return [];
   }
-
-  // eslint-disable-next-line no-console
-  console.log(`[RAG] Chunking text (${wikiText.length} chars)...`);
-
-  const chunks = textChunk(wikiText, 800, 100);
-
-  // eslint-disable-next-line no-console
-  console.log(`[RAG] Generating embeddings for ${chunks.length} chunks...`);
-
-  // To avoid hitting API limits with too many chunks at once,
-  // we could batch this, but for a single movie it should be fine.
-  const embeddings = await embeddingsGet(chunks);
-
-  if (!queryText) {
-
-    // If no query, just return a few chunks to show it's working
-    return chunks.slice(0, 3).map((text, i) => ({
-      text,
-      score: 1.0,
-      index: i
-    }));
-  }
-
-  // eslint-disable-next-line no-console
-  console.log(`[RAG] Generating embedding for query: "${queryText}"`);
-
-  const [queryEmbedding] = await embeddingsGet([queryText]);
-
-  // eslint-disable-next-line no-console
-  console.log('[RAG] Calculating similarity and ranking chunks...');
-
-  const results = chunks.map((text, i) => {
-
-    const similarity = cosineSimilarity(queryEmbedding, embeddings[i]);
-
-    return {
-      text,
-      score: similarity,
-      index: i
-    };
-  });
-
-  // Sort by similarity descending
-  results.sort((a, b) => b.score - a.score);
-
-  // Return top 5 results
-  return results.slice(0, 5);
 };
 
 export default movieRagGet;
