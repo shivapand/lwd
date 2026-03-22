@@ -72,7 +72,56 @@ const deckRandomGet = async (
   db
 ) => {
 
-  return deckGetFn(
+  const count = await deckCountDocuments(
+    {
+      'splash.spoofable': true
+    },
+    undefined,
+    db
+  );
+
+  const skip = (!count)
+    ? 0
+    : Math.floor(
+      Math.random() *
+      count
+    );
+
+  let deck = (!count)
+    ? null
+    : (
+      await deckFind(
+        {
+          'splash.spoofable': true
+        },
+        {
+          skip,
+          limit: 1
+        },
+        db
+      )
+    )[
+      0
+    ];
+
+  const result = (!deck)
+    ? await deckGetFn(
+      'The Matrix',
+      spoofInput,
+      genre,
+      undefined,
+      db
+    )
+    : await deckGetFn(
+      deck.splash.title,
+      spoofInput,
+      genre,
+      undefined,
+      db
+    );
+
+  // Fallback to The Matrix if the random selection failed (e.g. LLM failure)
+  return result || deckGetFn(
     'The Matrix',
     spoofInput,
     genre,
