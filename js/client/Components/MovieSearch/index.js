@@ -25,7 +25,7 @@ import MovieSearchResultItem from './MovieSearchResultItem';
 
 const dropdownStyle = css({
   '& .form-control': {
-    borderRadius: '1.5rem',
+    borderRadius: '0.75rem',
     backgroundColor: '#1e1e22',
     color: '#eee',
     borderColor: '#333',
@@ -44,7 +44,7 @@ const dropdownStyle = css({
   '& .dropdown-menu': {
     backgroundColor: '#1e1e22',
     border: '1px solid #333',
-    borderRadius: '1.5rem',
+    borderRadius: '0.75rem',
     padding: '0.8rem 0',
     marginTop: '0.5rem',
     overflow: 'hidden',
