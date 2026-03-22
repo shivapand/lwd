@@ -1,7 +1,7 @@
 'use strict';
 
 import nodeFetch from 'node-fetch';
-import geminiFetch from './geminiFetch';
+import groqFetch from './groqFetch';
 import movieRagGet from './movieRagGet';
 
 const PLACEHOLDER_POSTER = '/poster-fallback.png';
@@ -184,7 +184,7 @@ export default async (title, plotLimit) => {
   console.log(`[Groq] START: Requesting roast from Llama for "${title}"...`);
   const [poster, llmResult] = await Promise.all([
     posterGet(title),
-    geminiFetch(groqPromptGet(title, plotLimit, ragContext))
+    groqFetch(groqPromptGet(title, plotLimit, ragContext))
       .catch((error) => {
         // eslint-disable-next-line no-console
         console.error('Groq Fetch Error:', error);
