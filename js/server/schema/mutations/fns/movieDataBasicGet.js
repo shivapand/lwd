@@ -2,6 +2,7 @@
 
 import nodeFetch from 'node-fetch';
 import geminiFetch from './geminiFetch';
+import movieRagGet from './movieRagGet';
 
 const PLACEHOLDER_POSTER = '/poster-fallback.png';
 
@@ -19,8 +20,29 @@ const posterGet = async (title) => {
   return json?.thumbnail?.source || PLACEHOLDER_POSTER;
 };
 
-const groqPromptGet = (title, plotLimit) =>
-  `You are a movie expert. For the movie "${title}", provide the main cast and a funny plot retelling.
+const groqPromptGet = (title, plotLimit, ragContext = '') =>
+  `You are a cynical movie critic who hates everything and finds every plot point ridiculous. For the movie "${title}", provide the main cast and a devastatingly funny roast of the plot.
+
+${ragContext ? `Here are some absurd plot points and critical feedback from Wikipedia to use as fodder for your roast:
+---
+${ragContext}
+---
+` : ''}
+
+Style Guide for your Roast:
+1. Be brutally honest about how silly the premise is.
+2. Use metaphors involving mundane, annoying things (e.g., "like a dial-up modem in a hurricane").
+3. Describe character motivations as if they are toddlers making bad decisions.
+4. If there is a "chosen one" trope, treat it like an HR mistake.
+5. Use deadpan sarcasm and dry humor.
+
+MANDATORY ROLE TAGGING:
+- You MUST identify exactly ONE "hero", exactly ONE "heroine", and exactly ONE "villain".
+- The "hero" must be the primary male protagonist.
+- The "heroine" must be the primary female lead.
+- The "villain" must be the primary antagonist.
+- In the JSON "sentences" array, the object representing their name MUST have the "role" property set to "hero", "heroine", or "villain".
+- All other characters mentioned MUST have the "role": "other".
 
 Return JSON:
 {
@@ -54,8 +76,8 @@ Sentence rules:
 - Exactly ${plotLimit} sentences, chronological order
 - Max 75 characters per sentence (total of all token texts joined)
 - Every sentence must mention at least one character by name
-- Be cheeky, entertaining, and genuinely funny — like a friend roasting the plot over drinks
-- Use humor: sarcasm, understatement, absurd observations`;
+- Be cynical, sarcastic, and genuinely funny
+- Never apologize for the movie; just roast it based on the facts provided in the context.`;
 
 const castFromGroqGet = (groqCast) =>
   groqCast.reduce(
@@ -140,29 +162,44 @@ const roleNameFromSentencesGet = (sentences, role) =>
 
 export default async (title, plotLimit) => {
 
-  const [poster, groqResult] = await Promise.all([
+  // Fetch "Roastable" RAG context
+  console.log(`[RAG] START: Extracting roast material for "${title}"...`);
+  const ragResults = await movieRagGet(
+    title,
+    `What are the most ridiculous, logic-defying, or heavily criticized plot points and character motivations in ${title}?`
+  ).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.error('RAG Error:', error);
+    return [];
+  });
+
+  const ragContext = ragResults
+    .map((r) => r.text)
+    .join('\n\n');
+
+  const [poster, llmResult] = await Promise.all([
     posterGet(title),
-    geminiFetch(groqPromptGet(title, plotLimit))
+    geminiFetch(groqPromptGet(title, plotLimit, ragContext))
       .catch(() => null)
   ]);
 
-  return (!groqResult?.cast?.length || !groqResult?.sentences?.length)
+  return (!llmResult?.cast?.length || !llmResult?.sentences?.length)
     ? null
     : (() => {
 
-      const cast = castFromGroqGet(groqResult.cast);
+      const cast = castFromGroqGet(llmResult.cast);
 
       const roles = {
-        hero: roleNameFromSentencesGet(groqResult.sentences, 'hero'),
-        heroine: roleNameFromSentencesGet(groqResult.sentences, 'heroine'),
-        villain: roleNameFromSentencesGet(groqResult.sentences, 'villain')
+        hero: roleNameFromSentencesGet(llmResult.sentences, 'hero'),
+        heroine: roleNameFromSentencesGet(llmResult.sentences, 'heroine'),
+        villain: roleNameFromSentencesGet(llmResult.sentences, 'villain')
       };
 
       return {
         title,
         poster,
         cast: castWithRolesGet(cast, roles),
-        plot: groqResult.sentences.map(
+        plot: llmResult.sentences.map(
           (tokens, sentenceIndex) => ({
             text: tokensTextJoinedGet(tokens),
             tokens,
