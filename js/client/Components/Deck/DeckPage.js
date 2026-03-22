@@ -220,7 +220,9 @@ const DeckPage = () => {
           `
         }
       >
-        <Carousel>
+        <Carousel
+          initialIndex = { deck?._id }
+        >
           {
             [
               splashRender(),

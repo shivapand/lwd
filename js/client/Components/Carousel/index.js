@@ -70,7 +70,14 @@ const Carousel = (
         .carousel(
           'pause'
         );
-    }
+
+      if (typeof props.initialIndex !== 'undefined') {
+        $(carouselRef.current).carousel(props.initialIndex);
+      }
+    },
+    [
+      props.initialIndex
+    ]
   );
 
   const onClickHandle = (event) => {
