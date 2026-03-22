@@ -12,62 +12,89 @@ const groqFetch = async (prompt, attempt = 0) => {
 
   const apiKey = process.env.GROQ_API_KEY;
 
-  return (!apiKey)
-    ? null
-    : await (async () => {
+  if (!apiKey) {
+    // eslint-disable-next-line no-console
+    console.error('[Groq] API Key missing!');
+    return null;
+  }
 
-      const res = await nodeFetch(
-        GROQ_URL,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: GROQ_MODEL,
-            messages: [
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            response_format: { type: 'json_object' },
-            temperature: 0.3
-          }),
-          timeout: 30000
-        }
+  try {
+    const res = await nodeFetch(
+      GROQ_URL,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.3
+        }),
+        timeout: 30000
+      }
+    );
+
+    if (res.status === 429 && attempt < MAX_RETRIES) {
+
+      const retryAfter = res.headers.get('retry-after');
+
+      const delay = (retryAfter && parseInt(retryAfter) * 1000) ||
+        (Math.pow(2, attempt) * 2000);
+
+      // eslint-disable-next-line no-console
+      console.warn(`[Groq] Rate limited, retrying in ${delay}ms...`);
+
+      await new Promise(
+        (resolve) => setTimeout(resolve, delay)
       );
 
-      return (res.status === 429 && attempt < MAX_RETRIES)
-        ? await (async () => {
+      return groqFetch(prompt, attempt + 1);
+    }
 
-          const retryAfter = res.headers.get('retry-after');
+    if (!res.ok) {
+      const errorText = await res.text();
+      // eslint-disable-next-line no-console
+      console.error(`[Groq] API Error (${res.status}):`, errorText);
+      return null;
+    }
 
-          const delay = (retryAfter && parseInt(retryAfter) * 1000) ||
-            (Math.pow(2, attempt) * 2000);
+    const json = await res.json();
 
-          await new Promise(
-            (resolve) => setTimeout(resolve, delay)
-          );
+    const text = json?.choices?.[0]?.message?.content;
 
-          return groqFetch(prompt, attempt + 1);
-        })()
-        : (!res.ok)
-          ? null
-          : await (async () => {
+    if (!text) {
+      // eslint-disable-next-line no-console
+      console.error('[Groq] No content in response');
+      return null;
+    }
 
-            const json = await res.json();
+    try {
 
-            const text = json?.choices?.[0]?.message?.content;
+      return JSON.parse(text);
 
-            const parsed = (!text)
-              ? null
-              : JSON.parse(text);
+    } catch (parseError) {
 
-            return parsed;
-          })();
-    })();
+      // eslint-disable-next-line no-console
+      console.error('[Groq] JSON Parse Error:', parseError.message);
+      // eslint-disable-next-line no-console
+      console.error('[Groq] Raw text:', text);
+      return null;
+    }
+
+  } catch (error) {
+
+    // eslint-disable-next-line no-console
+    console.error('[Groq] Fetch Error:', error.message);
+    return null;
+  }
 };
 
 export default groqFetch;
