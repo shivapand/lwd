@@ -21,7 +21,7 @@ const posterGet = async (title) => {
 };
 
 const groqPromptGet = (title, plotLimit, ragContext = '') =>
-  `You are a cynical movie critic who hates everything and finds every plot point ridiculous. For the movie "${title}", provide the main cast and a devastatingly funny roast of the plot.
+  `You are a cynical movie critic who hates everything. For the movie "${title}", provide the main cast and a devastatingly funny roast of the plot.
 
 ${ragContext ? `Here are some absurd plot points and critical feedback from Wikipedia to use as fodder for your roast:
 ---
@@ -31,20 +31,18 @@ ${ragContext}
 
 Style Guide for your Roast:
 1. Be brutally honest about how silly the premise is.
-2. Identify the single dumbest plot hole or logical inconsistency from the Wikipedia context and mock it relentlessly.
-3. Attack character motivations as if they are poorly thought-out pyramid schemes or failed startup pitches.
-4. Treat epic tropes (like "the prophecy" or "saving the world") as if they are minor, annoying IT tickets that nobody wants to close.
-5. Use deadpan sarcasm and dry humor.
-6. VARIETY MANDATE: Never repeat the same joke or metaphor. ABSOLUTELY FORBIDDEN phrases: "questionable life choices", "series of events", "toddler with a sugar high", "dial-up modem".
-7. Be specific to the movie's actual details provided in the Wikipedia text.
+2. Use sharp, deadpan sarcasm and dry humor.
+3. Treat epic movie tropes as if they are mundane, everyday annoyances.
+4. VARIETY MANDATE: Ensure every sentence is unique and tailored strictly to the facts provided in the context.
 
 MANDATORY ROLE TAGGING:
 - You MUST identify exactly ONE "hero", exactly ONE "heroine", and exactly ONE "villain".
-- The "hero" must be the primary male protagonist.
-- The "heroine" must be the primary female lead.
-- The "villain" must be the primary antagonist.
 - In the JSON "sentences" array, the object representing their name MUST have the "role" property set to "hero", "heroine", or "villain".
 - All other characters mentioned MUST have the "role": "other".
+- A character's role is FIXED across all sentences.
+
+CHARACTER LIMIT:
+- CRITICAL: Each total sentence (sum of all tokens) MUST be less than 75 characters long.
 
 Return JSON:
 {
@@ -52,34 +50,23 @@ Return JSON:
     { "actor": "Leonardo DiCaprio", "character": "Dom Cobb" }
   ],
   "sentences": [
-    [{"text": "CharacterName", "role": "hero"}, {"text": " makes a series of questionable life choices."}]
+    [{"text": "CharacterName", "role": "hero"}, {"text": " makes a series of bad choices."}]
   ]
 }
 
 Cast rules:
 - Include the main cast members (up to 15)
-- "actor" is the real actor's full name
-- "character" is the character's full name
 - Order by billing/importance
 
 Token rules:
 - Each sentence is an array of tokens (objects with "text" and optionally "role")
 - Character name tokens MUST have "role": exactly one of "hero", "heroine", "villain", or "other"
-- CRITICAL CONSTRAINT — role uniqueness:
-  * Pick exactly ONE character as "hero" (the main male protagonist)
-  * Pick exactly ONE character as "heroine" (the main female lead)
-  * Pick exactly ONE character as "villain" (the main antagonist)
-  * Every single other character MUST use "other" — no exceptions
-  * A character's role is FIXED: if Dom is "hero" in sentence 1, he is "hero" in ALL sentences. No other character may ever be "hero".
-  * This means across the ENTIRE response, only 3 distinct character names have non-"other" roles
-- Non-character tokens only have "text" and MUST include leading/trailing spaces for proper spacing (e.g. " does something " not "does something")
+- Non-character tokens only have "text" and MUST include leading/trailing spaces for proper spacing
 
 Sentence rules:
 - Exactly ${plotLimit} sentences, chronological order
-- Max 75 characters per sentence (total of all token texts joined)
 - Every sentence must mention at least one character by name
-- Be cynical, sarcastic, and genuinely funny
-- Never apologize for the movie; just roast it based on the facts provided in the context.`;
+- Never apologize for the movie; just roast it based on the facts provided.`;
 
 const castFromGroqGet = (groqCast) =>
   groqCast.reduce(
