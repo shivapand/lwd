@@ -174,14 +174,18 @@ export default async (title, plotLimit) => {
     return [];
   });
 
-  const ragContext = ragResults
-    .map((r) => r.text)
-    .join('\n\n');
+  const ragContext = ragResults.length > 0
+    ? ragResults.map((r) => r.text).join('\n\n')
+    : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
 
   const [poster, llmResult] = await Promise.all([
     posterGet(title),
     geminiFetch(groqPromptGet(title, plotLimit, ragContext))
-      .catch(() => null)
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Groq Fetch Error:', error);
+        return null;
+      })
   ]);
 
   return (!llmResult?.cast?.length || !llmResult?.sentences?.length)

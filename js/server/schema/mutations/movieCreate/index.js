@@ -104,21 +104,30 @@ const deckRandomGet = async (
       0
     ];
 
-  return (!deck)
-    ? deckGetFn(
+  const result = (!deck)
+    ? await deckGetFn(
       'The Matrix',
       spoofInput,
       genre,
       undefined,
       db
     )
-    : deckGetFn(
+    : await deckGetFn(
       deck.splash.title,
       spoofInput,
       genre,
       undefined,
       db
     );
+
+  // Fallback to The Matrix if the random selection failed (e.g. LLM failure)
+  return result || deckGetFn(
+    'The Matrix',
+    spoofInput,
+    genre,
+    undefined,
+    db
+  );
 };
 
 const movieCreate = async (
