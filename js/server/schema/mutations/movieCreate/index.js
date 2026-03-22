@@ -279,23 +279,13 @@ const outputGet = async (
   db
 ) => {
 
-  const deck = (
-    outputType === 'deck'
-  )
-    ? await deckGetFn(
-      text,
-      spoofInput,
-      genre,
-      plotLimit,
-      db
-    )
-    : await deckGet(
-      text,
-      spoofInput,
-      genre,
-      plotLimit,
-      db
-    );
+  const deck = await deckGet(
+    text,
+    spoofInput,
+    genre,
+    plotLimit,
+    db
+  );
 
   switch (
     true
