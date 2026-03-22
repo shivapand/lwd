@@ -4,7 +4,7 @@ import nodeFetch from 'node-fetch';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const GROQ_MODEL = 'groq/compound';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 const MAX_RETRIES = 3;
 
