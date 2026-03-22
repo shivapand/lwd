@@ -7,6 +7,9 @@ const webpackConfigBase = require('./webpackConfigBase');
 module.exports = merge(
   webpackConfigBase,
   {
+    infrastructureLogging: {
+      level: 'error'
+    },
     devServer: {
       proxy: [
         {
@@ -27,7 +30,11 @@ module.exports = merge(
               loader: 'sass-loader',
               options: {
                 sassOptions: {
-                  quietDeps: true
+                  quietDeps: true,
+                  logger: {
+                    warn: (message) => { /* silence warnings */ },
+                    debug: (message) => { /* silence debug */ }
+                  }
                 }
               }
             }
