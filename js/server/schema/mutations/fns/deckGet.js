@@ -42,6 +42,7 @@ const deckPreBuiltGet = async (
     );
   }
 
+  console.log(`[Deck] 1/6: Fetching basic movie data for "${input}"...`);
   let movieDataBasic = await movieDataBasicGet(
     input,
     plotLimit
@@ -51,17 +52,19 @@ const deckPreBuiltGet = async (
     !movieDataBasic?.plot ||
     !movieDataBasic?.cast
   ) {
-
+    console.warn(`[Deck] Failed to get basic movie data for "${input}".`);
     return Promise.resolve(
       null
     );
   }
 
+  console.log(`[Deck] 2/6: Extracting characters for "${movieDataBasic.title}"...`);
   let characters = await charactersGet(
     movieDataBasic.cast,
     movieDataBasic.plot
   );
 
+  console.log(`[Deck] 3/6: Fetching Wikidata roles for "${movieDataBasic.title}"...`);
   const wikidataRoles = await wikidataRolesGet(
     characters,
     movieDataBasic.title
@@ -96,6 +99,7 @@ const deckPreBuiltGet = async (
     cards
   );
 
+  console.log(`[Deck] 4/6: Assigning meta roles for "${movieDataBasic.title}"...`);
   characters = await charactersMetaRoleAssignedGet(
     characters
   );
@@ -114,6 +118,7 @@ const deckPreBuiltGet = async (
     cards
   );
 
+  console.log(`[Deck] 5/6: Creating initial splash data for "${movieDataBasic.title}"...`);
   return {
     splash: {
       title: movieDataBasic.title,
@@ -135,7 +140,6 @@ const deckPostProcessedGet = async (
   if (
     !deck
   ) {
-
     return Promise.resolve(
       null
     );
@@ -144,7 +148,6 @@ const deckPostProcessedGet = async (
   if (
     !genre
   ) {
-
     return Promise.resolve(
       deck
     );
@@ -169,6 +172,7 @@ const deckPostProcessedGet = async (
     cards: spoofedCards
   };
 
+  console.log(`[Deck] 6/6: Assigning actor images and Giphy URLs for "${deck.splash.title}"...`);
   deck = await deckActorImageIdsAssignedGet(
     deck,
     db
@@ -209,6 +213,8 @@ const deckPostProcessedGet = async (
   deck = deckRenderDetailsAssignedGet(
     deck
   );
+
+  console.log(`[Deck] FINISHED: Fully processed deck for "${deck.splash.title}".`);
 
   return (
     deck

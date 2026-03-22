@@ -181,6 +181,7 @@ export default async (title, plotLimit) => {
     ? ragResults.map((r) => r.text).join('\n\n')
     : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
 
+  console.log(`[Groq] START: Requesting roast from Llama for "${title}"...`);
   const [poster, llmResult] = await Promise.all([
     posterGet(title),
     geminiFetch(groqPromptGet(title, plotLimit, ragContext))
@@ -190,6 +191,7 @@ export default async (title, plotLimit) => {
         return null;
       })
   ]);
+  console.log(`[Groq] COMPLETED: Received response for "${title}".`);
 
   return (!llmResult?.cast?.length || !llmResult?.sentences?.length)
     ? null
