@@ -25,7 +25,8 @@ const embeddingsGet = async (texts) => {
       },
       body: JSON.stringify({
         inputs: texts
-      })
+      }),
+      timeout: 30000
     }
   );
 

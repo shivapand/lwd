@@ -398,14 +398,24 @@ export default async (
     plotLimit = 5
   } = options;
 
-  let output = await outputGet(
-    text,
-    spoofInput,
-    genre,
-    outputType,
-    plotLimit,
-    db
-  );
+  let output = await (
+    outputType === 'deck'
+  )
+    ? await deckGetFn(
+      text,
+      spoofInput,
+      genre,
+      plotLimit,
+      db
+    )
+    : await outputGet(
+      text,
+      spoofInput,
+      genre,
+      outputType,
+      plotLimit,
+      db
+    );
 
   return (!output)
     ? {}

@@ -163,14 +163,17 @@ const roleNameFromSentencesGet = (sentences, role) =>
 
 export default async (title, plotLimit) => {
 
-  // Fetch "Roastable" RAG context
+  // Fetch "Roastable" RAG context with a timeout
   console.log(`[RAG] START: Extracting roast material for "${title}"...`);
-  const ragResults = await movieRagGet(
-    title,
-    `What are the most ridiculous, logic-defying, or heavily criticized plot points and character motivations in ${title}?`
-  ).catch((error) => {
+  const ragResults = await Promise.race([
+    movieRagGet(
+      title,
+      `What are the most ridiculous, logic-defying, or heavily criticized plot points and character motivations in ${title}?`
+    ),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('RAG Timeout')), 15000))
+  ]).catch((error) => {
     // eslint-disable-next-line no-console
-    console.error('RAG Error:', error);
+    console.error('RAG Error or Timeout:', error.message);
     return [];
   });
 
