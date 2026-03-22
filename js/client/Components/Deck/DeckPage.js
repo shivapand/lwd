@@ -62,6 +62,35 @@ const DeckPage = () => {
   );
 
   const [
+    loadingMessage,
+    loadingMessageSet
+  ] = useState(
+    'Preparing cinematic data...'
+  );
+
+  useEffect(() => {
+    if (!loading) return;
+
+    const messages = [
+      'Reading Wikipedia archives...',
+      'Embedding plot context...',
+      'Retrieving relevant roast material...',
+      'Consulting Groq for the perfect roast...',
+      'Identifying hero and villain...',
+      'Searching Giphy for the best reactions...',
+      'Rendering cinematic slideshow...'
+    ];
+
+    let index = 0;
+    const interval = setInterval(() => {
+      index = (index + 1) % messages.length;
+      loadingMessageSet(messages[index]);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  const [
     error,
     errorSet
   ] = useState(
@@ -286,7 +315,7 @@ const DeckPage = () => {
           transition: 'all 0.3s ease'
         })}
       >
-        <Loading />
+        <Loading message={loadingMessage} />
       </div>
     );
   };
