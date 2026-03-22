@@ -112,10 +112,11 @@ const deckRandomGet = async (
       undefined,
       db
     )
-    : deckCachedHandledGet(
-      deck,
+    : deckGetFn(
+      deck.splash.title,
       spoofInput,
       genre,
+      undefined,
       db
     );
 };
