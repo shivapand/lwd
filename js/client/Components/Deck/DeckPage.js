@@ -265,8 +265,28 @@ const DeckPage = () => {
 
     return (
       loading
-    ) &&
-      <Loading />;
+    ) && (
+      <div
+        className='LoadingOverlay'
+        css={css({
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          transition: 'all 0.3s ease'
+        })}
+      >
+        <Loading />
+      </div>
+    );
   };
 
   const errorRender = () => {
@@ -286,7 +306,6 @@ const DeckPage = () => {
   const contentRender = () => {
 
     return (
-      !loading &&
       deck &&
       deck.splash
     ) &&
@@ -296,7 +315,9 @@ const DeckPage = () => {
         css = {
           css(
             {
-              position: 'relative'
+              position: 'relative',
+              filter: loading ? 'grayscale(50%)' : 'none',
+              transition: 'filter 0.3s ease'
             }
           )
         }
@@ -310,6 +331,7 @@ const DeckPage = () => {
   return (
     <div
       className = 'DeckPage h-100'
+      css={css({ position: 'relative' })}
     >
       {
         contentRender()
