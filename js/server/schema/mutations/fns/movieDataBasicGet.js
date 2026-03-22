@@ -37,11 +37,11 @@ Style Guide for your Roast:
 3. Treat epic movie tropes as if they are mundane, everyday annoyances.
 4. VARIETY MANDATE: Ensure every sentence is unique and tailored strictly to the facts provided in the context.
 
-MANDATORY ROLE TAGGING:
-- You MUST identify exactly ONE "hero", exactly ONE "heroine", and exactly ONE "villain".
-- In the JSON "sentences" array, the object representing their name MUST have the "role" property set to "hero", "heroine", or "villain".
-- All other characters mentioned MUST have the "role": "other".
-- A character's role is FIXED across all sentences.
+STRICT SCHEMA WARNING:
+- You MUST return a JSON object with exactly two keys: "cast" and "sentences".
+- DO NOT use "main_cast", "plot_roast", or any other names.
+- The "cast" must be an array of objects: { "actor": "Name", "character": "Name" }.
+- The "sentences" must be an array of token arrays.
 
 CHARACTER LIMIT:
 - CRITICAL: Each total sentence (sum of all tokens) MUST be less than 75 characters long.
@@ -63,7 +63,7 @@ Cast rules:
 Token rules:
 - Each sentence is an array of tokens (objects with "text" and optionally "role")
 - Character name tokens MUST have "role": exactly one of "hero", "heroine", "villain", or "other"
-- Non-character tokens only have "text" and MUST include leading/trailing spaces for proper spacing
+- Non-character tokens only have "text" and MUST include leading/trailing spaces
 
 Sentence rules:
 - Exactly ${plotLimit} sentences, chronological order
@@ -183,12 +183,12 @@ export default async (title, plotLimit) => {
     // Try OpenRouter first, fallback to Groq
     openrouterFetch(groqPromptGet(title, plotLimit, ragContext))
       .then(async (res) => {
-        if (res) {
+        if (res && res.cast && res.sentences) {
           console.log(`[LLM] OpenRouter Result received for "${title}".`);
           return res;
         }
         
-        console.warn(`[LLM] OpenRouter failed or rate limited, falling back to Groq for "${title}"...`);
+        console.warn(`[LLM] OpenRouter failed or returned invalid schema, falling back to Groq for "${title}"...`);
         return groqFetch(groqPromptGet(title, plotLimit, ragContext))
           .then(groqRes => {
             if (groqRes) console.log(`[LLM] Groq Fallback successful for "${title}".`);
@@ -206,6 +206,10 @@ export default async (title, plotLimit) => {
   // Handle case where BOTH failed (rate limited or error)
   if (!llmResult?.cast?.length || !llmResult?.sentences?.length) {
     console.warn(`[LLM] CRITICAL: All providers failed for "${title}". Providing fallback data.`);
+    if (llmResult) {
+      console.warn(`[LLM] Received data but it was missing keys: ${Object.keys(llmResult).join(', ')}`);
+    }
+    
     return {
       title,
       poster,
@@ -220,18 +224,18 @@ export default async (title, plotLimit) => {
       ],
       plot: [
         {
-          text: "Both Groq and OpenRouter are taking a coffee break.",
-          tokens: [{ text: "Both Groq and OpenRouter are taking a coffee break." }],
+          text: "Both AI providers returned invalid data or are rate-limited.",
+          tokens: [{ text: "Both AI providers returned invalid data or are rate-limited." }],
           sentenceIndex: 0
         },
         {
-          text: "Please wait a few minutes before trying this movie again.",
-          tokens: [{ text: "Please wait a few minutes before trying this movie again." }],
+          text: "Wikipedia context was found, but the roast generation failed.",
+          tokens: [{ text: "Wikipedia context was found, but the roast generation failed." }],
           sentenceIndex: 1
         },
         {
-          text: "Our AI brain is currently overloaded with requests.",
-          tokens: [{ text: "Our AI brain is currently overloaded with requests." }],
+          text: "Please try again in a few moments.",
+          tokens: [{ text: "Please try again in a few moments." }],
           sentenceIndex: 2
         }
       ]

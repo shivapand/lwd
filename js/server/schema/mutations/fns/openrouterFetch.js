@@ -4,9 +4,8 @@ import nodeFetch from 'node-fetch';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// You can use 'openrouter/free' to auto-route to best free model,
-// or a specific high-quality one like Gemini 2.0 Flash.
-const OPENROUTER_MODEL = 'google/gemini-2.0-flash-001';
+// Use the guaranteed free version of Gemini 2.0 Flash
+const OPENROUTER_MODEL = 'google/gemini-2.0-flash-001:free';
 
 const MAX_RETRIES = 3;
 
