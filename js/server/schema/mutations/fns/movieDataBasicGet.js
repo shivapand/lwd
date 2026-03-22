@@ -188,10 +188,42 @@ export default async (title, plotLimit) => {
   ]);
   console.log(`[Groq] COMPLETED: Both tasks finished for "${title}".`);
 
+  // Handle case where Groq failed (rate limited or error)
+  if (!llmResult?.cast?.length || !llmResult?.sentences?.length) {
+    console.warn(`[Groq] Fallback: Providing basic data for "${title}" due to LLM failure.`);
+    return {
+      title,
+      poster,
+      cast: [
+        {
+          actor: { text: "The Entire Cast", ud: null, gender: 'unknown' },
+          characterName: "Themselves",
+          characterNameFull: "Themselves",
+          profileImage: null,
+          role: "The Entire Cast"
+        }
+      ],
+      plot: [
+        {
+          text: "Groq is currently taking a coffee break (Rate Limited).",
+          tokens: [{ text: "Groq is currently taking a coffee break (Rate Limited)." }],
+          sentenceIndex: 0
+        },
+        {
+          text: "Please wait a few minutes before trying this movie again.",
+          tokens: [{ text: "Please wait a few minutes before trying this movie again." }],
+          sentenceIndex: 1
+        },
+        {
+          text: "The cynical critic will return shortly to roast this properly.",
+          tokens: [{ text: "The cynical critic will return shortly to roast this properly." }],
+          sentenceIndex: 2
+        }
+      ]
+    };
+  }
 
-  return (!llmResult?.cast?.length || !llmResult?.sentences?.length)
-    ? null
-    : (() => {
+  return (() => {
 
       const cast = castFromGroqGet(llmResult.cast);
 

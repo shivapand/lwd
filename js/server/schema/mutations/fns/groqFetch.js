@@ -42,21 +42,10 @@ const groqFetch = async (prompt, attempt = 0) => {
       }
     );
 
-    if (res.status === 429 && attempt < MAX_RETRIES) {
-
-      const retryAfter = res.headers.get('retry-after');
-
-      const delay = (retryAfter && parseInt(retryAfter) * 1000) ||
-        (Math.pow(2, attempt) * 2000);
-
+    if (res.status === 429) {
       // eslint-disable-next-line no-console
-      console.warn(`[Groq] Rate limited, retrying in ${delay}ms...`);
-
-      await new Promise(
-        (resolve) => setTimeout(resolve, delay)
-      );
-
-      return groqFetch(prompt, attempt + 1);
+      console.warn(`[Groq] Rate limited for "${GROQ_MODEL}". Skipping retry to prevent clogging.`);
+      return null;
     }
 
     if (!res.ok) {
