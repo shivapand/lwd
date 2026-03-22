@@ -5,6 +5,8 @@ dotenv.config();
 
 import path from 'path';
 import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
 
 import {
   titleGet,
@@ -28,6 +30,8 @@ import searchRoute from './routes/search';
 import deckRoute from './routes/deck';
 import movieRoute from './routes/movie';
 
+import statusEmitter from './fns/statusEmitter';
+
 (
   async () => {
 
@@ -39,7 +43,7 @@ import movieRoute from './routes/movie';
 
     const port = portGet();
 
-    return express()
+    const app = express()
 
       .set(
         'trust proxy',
@@ -209,11 +213,37 @@ import movieRoute from './routes/movie';
             }
           );
         }
-      )
+      );
 
-      .listen(
-        port,
-        () => {
+    const server = http.createServer(app);
+    
+    const io = new Server(server, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+      }
+    });
+
+    app.set('io', io);
+
+    io.on('connection', (socket) => {
+      // eslint-disable-next-line no-console
+      console.log('Client connected for real-time status updates');
+      
+      const onStatusUpdate = (data) => {
+        socket.emit('statusUpdate', data);
+      };
+
+      statusEmitter.on('statusUpdate', onStatusUpdate);
+
+      socket.on('disconnect', () => {
+        statusEmitter.off('statusUpdate', onStatusUpdate);
+      });
+    });
+
+    return server.listen(
+      port,
+      () => {
 
           // eslint-disable-next-line no-console
           console.log(

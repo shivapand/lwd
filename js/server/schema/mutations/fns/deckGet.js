@@ -25,6 +25,7 @@ import deckRenderDetailsAssignedGet
   from './deckRenderDetailsAssignedGet';
 import cardsGifyUrlAssignedGet
   from './cardsGifyUrlAssignedGet';
+import { broadcastStatus } from '~/js/server/fns/statusEmitter';
 
 const deckPreBuiltGet = async (
   input,
@@ -43,6 +44,7 @@ const deckPreBuiltGet = async (
   }
 
   console.log(`[Deck] 1/6: Fetching basic movie data for "${input}"...`);
+  broadcastStatus(input, 'Fetching basic movie data...');
   let movieDataBasic = await movieDataBasicGet(
     input,
     plotLimit
@@ -53,18 +55,21 @@ const deckPreBuiltGet = async (
     !movieDataBasic?.cast
   ) {
     console.warn(`[Deck] Failed to get basic movie data for "${input}".`);
+    broadcastStatus(input, 'Fallback: Using general knowledge...');
     return Promise.resolve(
       null
     );
   }
 
   console.log(`[Deck] 2/6: Extracting characters for "${movieDataBasic.title}"...`);
+  broadcastStatus(movieDataBasic.title, 'Extracting characters from the plot...');
   let characters = await charactersGet(
     movieDataBasic.cast,
     movieDataBasic.plot
   );
 
   console.log(`[Deck] 3/6: Fetching Wikidata roles for "${movieDataBasic.title}"...`);
+  broadcastStatus(movieDataBasic.title, 'Cross-referencing roles with Wikidata...');
   const wikidataRoles = await wikidataRolesGet(
     characters,
     movieDataBasic.title
@@ -100,6 +105,7 @@ const deckPreBuiltGet = async (
   );
 
   console.log(`[Deck] 4/6: Assigning meta roles for "${movieDataBasic.title}"...`);
+  broadcastStatus(movieDataBasic.title, 'Assigning hero, heroine, and villain...');
   characters = await charactersMetaRoleAssignedGet(
     characters
   );
@@ -119,6 +125,7 @@ const deckPreBuiltGet = async (
   );
 
   console.log(`[Deck] 5/6: Creating initial splash data for "${movieDataBasic.title}"...`);
+  broadcastStatus(movieDataBasic.title, 'Creating cinematic title card...');
   return {
     splash: {
       title: movieDataBasic.title,
@@ -173,6 +180,7 @@ const deckPostProcessedGet = async (
   };
 
   console.log(`[Deck] 6/6: Assigning actor images and Giphy URLs for "${deck.splash.title}"...`);
+  broadcastStatus(deck.splash.title, 'Searching Giphy for perfect reactions...');
   deck = await deckActorImageIdsAssignedGet(
     deck,
     db
@@ -215,6 +223,7 @@ const deckPostProcessedGet = async (
   );
 
   console.log(`[Deck] FINISHED: Fully processed deck for "${deck.splash.title}".`);
+  broadcastStatus(deck.splash.title, 'Rendering cinematic slideshow...');
 
   return (
     deck

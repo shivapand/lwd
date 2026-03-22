@@ -8,6 +8,7 @@ import {
   embeddingsGet,
   cosineSimilarity
 } from './hfRagUtils';
+import { broadcastStatus } from '~/js/server/fns/statusEmitter';
 
 /**
  * Main RAG logic: Fetch, Chunk, Embed, and Retrieve.
@@ -17,6 +18,7 @@ const movieRagGet = async (title, queryText = '') => {
   try {
     // eslint-disable-next-line no-console
     console.log(`[RAG] Fetching Wikipedia for "${title}"...`);
+    broadcastStatus(title, 'Fetching Wikipedia...');
 
     const wikiText = await wikiTextGet(title);
 
@@ -28,11 +30,13 @@ const movieRagGet = async (title, queryText = '') => {
 
     // eslint-disable-next-line no-console
     console.log(`[RAG] Chunking text (${wikiText.length} chars)...`);
+    broadcastStatus(title, `Chunking ${wikiText.length} characters of text...`);
 
     const chunks = textChunk(wikiText, 800, 100);
 
     // eslint-disable-next-line no-console
     console.log(`[RAG] Generating embeddings for ${chunks.length} chunks...`);
+    broadcastStatus(title, `Generating embeddings for ${chunks.length} chunks...`);
 
     const embeddings = await embeddingsGet(chunks);
 
@@ -51,6 +55,7 @@ const movieRagGet = async (title, queryText = '') => {
 
     // eslint-disable-next-line no-console
     console.log(`[RAG] Generating embedding for query: "${queryText}"`);
+    broadcastStatus(title, 'Embedding query & calculating similarities...');
 
     const queryEmbeddings = await embeddingsGet([queryText]);
     

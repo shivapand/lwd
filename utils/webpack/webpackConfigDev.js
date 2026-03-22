@@ -23,7 +23,14 @@ module.exports = merge(
           use: [
             'style-loader',
             'css-loader',
-            'sass-loader'
+            {
+              loader: 'sass-loader',
+              options: {
+                sassOptions: {
+                  quietDeps: true
+                }
+              }
+            }
           ]
         }
       ]

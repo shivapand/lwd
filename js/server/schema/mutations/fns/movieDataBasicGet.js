@@ -3,6 +3,7 @@
 import nodeFetch from 'node-fetch';
 import groqFetch from './groqFetch';
 import movieRagGet from './movieRagGet';
+import { broadcastStatus } from '~/js/server/fns/statusEmitter';
 
 const PLACEHOLDER_POSTER = '/poster-fallback.png';
 
@@ -153,6 +154,7 @@ export default async (title, plotLimit) => {
 
   // Fetch "Roastable" RAG context with a timeout
   console.log(`[RAG] START: Extracting roast material for "${title}"...`);
+  broadcastStatus(title, 'Reading Wikipedia archives...');
   const ragResults = await Promise.race([
     movieRagGet(
       title,
@@ -170,6 +172,7 @@ export default async (title, plotLimit) => {
     : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
 
   console.log(`[Groq] START: Requesting roast and poster for "${title}"...`);
+  broadcastStatus(title, 'Consulting Groq for the perfect roast...');
   const [poster, llmResult] = await Promise.all([
     posterGet(title).then(res => {
       console.log(`[Groq] Poster fetched for "${title}".`);
