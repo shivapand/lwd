@@ -72,62 +72,82 @@ const Splash = (
               borderRadius: '1.5rem',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               fontFamily: 'inherit',
-              fontSize: props.textFontSize,
-              minHeight: props.textElementMinHeight,
-              padding: '1.5rem',
+              padding: '2rem 1.5rem',
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-              textAlign: 'center'
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
             }
           )
         }
       >
-        {
-          splashSpoofInputRender()
-        }
-        <div
-          className = {
-            `
-              d-inline-block
-              rounded-circle
-              border border-info
-              text-info
-              font-weight-bold
-            `
-          }
-          css = {
-            css(
-              {
-                width: '2rem',
-                height: '2rem',
-                lineHeight: '1.8rem',
-                fontSize: '1rem',
-                padding: 0,
-                margin: '0.5rem 0',
-                backgroundColor: 'rgba(23, 162, 184, 0.1)',
-                boxShadow: '0 0 10px rgba(23, 162, 184, 0.3)'
-              }
-            )
-          }
-        >
-          in
-        </div>
         <div
           css = {
             css(
               {
-                fontWeight: 700,
-                letterSpacing: '-0.05em',
-                textShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
               }
             )
           }
         >
           {
-            props.splash.title
+            splashSpoofInputRender()
           }
+          
+          <div
+            className = {
+              `
+                d-inline-block
+                rounded-circle
+                border border-info
+                text-info
+                font-weight-bold
+              `
+            }
+            css = {
+              css(
+                {
+                  width: '2.2rem',
+                  height: '2.2rem',
+                  lineHeight: '2rem',
+                  fontSize: '0.9rem',
+                  padding: 0,
+                  margin: '1rem 0',
+                  backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                  boxShadow: '0 0 15px rgba(23, 162, 184, 0.3)',
+                  borderWidth: '2px !important'
+                }
+              )
+            }
+          >
+            in
+          </div>
+
+          <div
+            css = {
+              css(
+                {
+                  fontSize: props.textFontSize,
+                  fontWeight: 900,
+                  letterSpacing: '-0.02em',
+                  textShadow: '0 10px 20px rgba(0, 0, 0, 0.4)',
+                  textTransform: 'uppercase',
+                  lineHeight: 1.1
+                }
+              )
+            }
+          >
+            {
+              props.splash.title
+            }
+          </div>
         </div>
       </div>
     );
