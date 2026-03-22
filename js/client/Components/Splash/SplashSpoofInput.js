@@ -68,7 +68,10 @@ const SplashSpoofInput = (
       inputRef.current.blur();
     }
 
-    return props.onSplashSpoofInputTrigger(text);
+    // If text is empty, fall back to current search param or env hero
+    const finalHero = text.trim() || searchParams.get('hero') || process.env.HERO;
+
+    return props.onSplashSpoofInputTrigger(finalHero);
   };
 
   const onKeyDownHandle = (event) => {
@@ -79,6 +82,8 @@ const SplashSpoofInput = (
 
   const onFocusHandle = () => {
     isFocusedSet(true);
+    // Clear the text on edit so the user can type fresh
+    textSet('');
   };
 
   const onIconClickHandle = (event) => {
@@ -139,6 +144,7 @@ const SplashSpoofInput = (
             letterSpacing: '0.1em'
           })}
         >
+          {/* Use placeholder text for width measurement when empty */}
           {text || searchParams.get('hero') || process.env.HERO}
         </span>
 
