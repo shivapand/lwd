@@ -187,7 +187,7 @@ export default async (title, plotLimit) => {
       console.log(`[Groq] Poster fetched for "${title}".`);
       return res;
     }),
-    geminiFetch(groqPromptGet(title, plotLimit, ragContext))
+    groqFetch(groqPromptGet(title, plotLimit, ragContext))
       .then(res => {
         console.log(`[Groq] LLM Result received for "${title}".`);
         return res;
