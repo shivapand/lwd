@@ -2,6 +2,7 @@
 
 import nodeFetch from 'node-fetch';
 import groqFetch from './groqFetch';
+import openrouterFetch from './openrouterFetch';
 import movieRagGet from './movieRagGet';
 import { broadcastStatus } from '~/js/server/fns/statusEmitter';
 
@@ -171,29 +172,40 @@ export default async (title, plotLimit) => {
     ? ragResults.map((r) => r.text).join('\n\n')
     : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
 
-  console.log(`[Groq] START: Requesting roast and poster for "${title}"...`);
-  broadcastStatus(title, 'Consulting Groq for the perfect roast...');
+  console.log(`[LLM] START: Requesting roast and poster for "${title}"...`);
+  broadcastStatus(title, 'Consulting AI for the perfect roast...');
+  
   const [poster, llmResult] = await Promise.all([
     posterGet(title).then(res => {
-      console.log(`[Groq] Poster fetched for "${title}".`);
+      console.log(`[LLM] Poster fetched for "${title}".`);
       return res;
     }),
-    groqFetch(groqPromptGet(title, plotLimit, ragContext))
-      .then(res => {
-        console.log(`[Groq] LLM Result received for "${title}".`);
-        return res;
+    // Try OpenRouter first, fallback to Groq
+    openrouterFetch(groqPromptGet(title, plotLimit, ragContext))
+      .then(async (res) => {
+        if (res) {
+          console.log(`[LLM] OpenRouter Result received for "${title}".`);
+          return res;
+        }
+        
+        console.warn(`[LLM] OpenRouter failed or rate limited, falling back to Groq for "${title}"...`);
+        return groqFetch(groqPromptGet(title, plotLimit, ragContext))
+          .then(groqRes => {
+            if (groqRes) console.log(`[LLM] Groq Fallback successful for "${title}".`);
+            return groqRes;
+          });
       })
       .catch((error) => {
         // eslint-disable-next-line no-console
-        console.error('Groq Fetch Error:', error);
+        console.error('LLM Fetch Error:', error);
         return null;
       })
   ]);
-  console.log(`[Groq] COMPLETED: Both tasks finished for "${title}".`);
+  console.log(`[LLM] COMPLETED: Both tasks finished for "${title}".`);
 
-  // Handle case where Groq failed (rate limited or error)
+  // Handle case where BOTH failed (rate limited or error)
   if (!llmResult?.cast?.length || !llmResult?.sentences?.length) {
-    console.warn(`[Groq] Fallback: Providing basic data for "${title}" due to LLM failure.`);
+    console.warn(`[LLM] CRITICAL: All providers failed for "${title}". Providing fallback data.`);
     return {
       title,
       poster,
@@ -208,8 +220,8 @@ export default async (title, plotLimit) => {
       ],
       plot: [
         {
-          text: "Groq is currently taking a coffee break (Rate Limited).",
-          tokens: [{ text: "Groq is currently taking a coffee break (Rate Limited)." }],
+          text: "Both Groq and OpenRouter are taking a coffee break.",
+          tokens: [{ text: "Both Groq and OpenRouter are taking a coffee break." }],
           sentenceIndex: 0
         },
         {
@@ -218,8 +230,8 @@ export default async (title, plotLimit) => {
           sentenceIndex: 1
         },
         {
-          text: "The cynical critic will return shortly to roast this properly.",
-          tokens: [{ text: "The cynical critic will return shortly to roast this properly." }],
+          text: "Our AI brain is currently overloaded with requests.",
+          tokens: [{ text: "Our AI brain is currently overloaded with requests." }],
           sentenceIndex: 2
         }
       ]
