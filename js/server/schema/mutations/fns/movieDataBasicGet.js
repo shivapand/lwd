@@ -21,8 +21,10 @@ const posterGet = async (title) => {
   return json?.thumbnail?.source || PLACEHOLDER_POSTER;
 };
 
-const groqPromptGet = (title, plotLimit) =>
+const groqPromptGet = (title, plotLimit, ragContext = '') =>
   `Film: "${title}"
+Context:
+${ragContext}
 
 Return JSON with exactly this structure:
 {
@@ -34,10 +36,12 @@ Return JSON with exactly this structure:
 }
 
 Rules:
-- 5 funny sentences (<110 chars each) with proper grammar.
+- ${plotLimit} to 8 sentences (<150 chars each) with proper grammar.
 - "sentences" is an array of arrays.
 - Each inner array contains token objects: {"text": "...", "role": "..."}.
-- Roles: pick exactly 1 hero, 1 heroine, 1 villain. others "other".`;
+- Roles: pick exactly 1 hero, 1 heroine, 1 villain. others "other".
+- Use the provided Context to mock the movie's actual plot.
+- Try to give a funny twist to proceedings.`;
 
 const castFromGroqGet = (groqCast) =>
   groqCast.reduce(
@@ -136,6 +140,25 @@ const roleNameFromSentencesGet = (sentences, role) =>
 
 export default async (title, plotLimit) => {
 
+  // Fetch plot-focused RAG context
+  console.log(`[RAG] START: Extracting plot details for "${title}"...`);
+  broadcastStatus(title, 'Reading Wikipedia archives...');
+  const ragResults = await Promise.race([
+    movieRagGet(
+      title,
+      `What are the most important and most absurd plot points and key scenes in the movie ${title}?`
+    ),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('RAG Timeout')), 15000))
+  ]).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.error('RAG Error or Timeout:', error.message);
+    return [];
+  });
+
+  const ragContext = ragResults.length > 0
+    ? ragResults.map((r) => r.text).join('\n\n')
+    : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
+
   console.log(`[LLM] START: Requesting summary and poster for "${title}"...`);
   broadcastStatus(title, 'Consulting AI for the plot summary...');
   
@@ -144,7 +167,7 @@ export default async (title, plotLimit) => {
       console.log(`[LLM] Poster fetched for "${title}".`);
       return res;
     }),
-    groqFetch(groqPromptGet(title, plotLimit))
+    groqFetch(groqPromptGet(title, plotLimit, ragContext))
       .then(res => {
         if (res) {
           console.log(`[LLM] Groq Result received for "${title}".`);
