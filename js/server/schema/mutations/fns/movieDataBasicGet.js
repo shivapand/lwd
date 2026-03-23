@@ -41,8 +41,7 @@ Rules:
 - Each inner array contains token objects: {"text": "...", "role": "..."}.
 - Roles: pick exactly 1 hero, 1 heroine, 1 villain. others "other".
 - Use the provided Context to mock the movie's actual plot.
-- Provide a creative, funny twist to proceedings with varied sentence structures. 
-- Avoid repetitive opening phrases or simple slapstick; be witty and unpredictable.`;
+- Try to be creative and funny.`;
 
 const castFromGroqGet = (groqCast) =>
   groqCast.reduce(
