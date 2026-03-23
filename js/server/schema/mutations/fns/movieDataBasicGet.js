@@ -30,7 +30,7 @@ Return JSON:
 {"cast":[{"actor":"A","character":"C"}],"sentences":[[{"text":"N","role":"hero/heroine/villain/other"},{"text":" text "}]]}
 
 Rules:
-- 5 funny sentences (<110 chars each) mocking the context.
+- 5 funny sentences (<110 chars each) with PROPER PUNCTUATION and GRAMMAR.
 - Every sentence MUST name a character.
 - Roles: 1 hero, 1 heroine, 1 villain, others "other".`;
 
@@ -101,7 +101,8 @@ const tokensTextJoinedGet = (tokens) =>
 
       const needsSpace = memo.length > 0 &&
         !memo.endsWith(' ') &&
-        !t.text.startsWith(' ');
+        !t.text.startsWith(' ') &&
+        !t.text.match(/^['.,!?;:]/);
 
       return `${memo}${needsSpace ? ' ' : ''}${t.text}`;
     },
