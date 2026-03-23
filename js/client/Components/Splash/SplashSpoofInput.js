@@ -62,6 +62,7 @@ const SplashSpoofInput = (
     event?.preventDefault();
     event?.stopPropagation();
     
+    console.log(`[UI] Name spoof triggered for: "${text}"`);
     isFocusedSet(false);
     
     if (inputRef.current) {

@@ -34,7 +34,7 @@ const Carousel = (
           )
           .carousel(
             {
-              ride: false
+              ride: true
             }
           );
       },
@@ -48,7 +48,7 @@ const Carousel = (
           )
           .carousel(
             {
-              ride: false
+              ride: true
             }
           );
       }
