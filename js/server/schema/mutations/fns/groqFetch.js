@@ -36,7 +36,8 @@ const groqFetch = async (prompt, attempt = 0) => {
             }
           ],
           response_format: { type: 'json_object' },
-          temperature: 0.3
+          temperature: 0.3,
+          max_tokens: 1024
         }),
         timeout: 30000
       }

@@ -22,52 +22,17 @@ const posterGet = async (title) => {
 };
 
 const groqPromptGet = (title, plotLimit, ragContext = '') =>
-  `You are a cynical movie critic who hates everything. For the movie "${title}", provide the main cast and a devastatingly funny roast of the plot.
-
-${ragContext ? `Here are some absurd plot points and critical feedback from Wikipedia to use as fodder for your roast:
----
+  `Film: "${title}"
+Context:
 ${ragContext}
----
-` : ''}
-
-Style Guide for your Roast:
-1. Be brutally honest about how silly the premise is.
-2. Use sharp, deadpan sarcasm and dry humor.
-3. Treat epic movie tropes as if they are mundane, everyday annoyances.
-4. VARIETY MANDATE: Ensure every sentence is unique and tailored strictly to the facts provided in the context.
-
-STRICT SCHEMA WARNING:
-- You MUST return a JSON object with exactly two keys: "cast" and "sentences".
-- DO NOT use "main_cast", "plot_roast", or any other names.
-- The "cast" must be an array of objects: { "actor": "Name", "character": "Name" }.
-- The "sentences" must be an array of token arrays.
-
-CHARACTER LIMIT:
-- CRITICAL: Each total sentence (sum of all tokens) MUST be less than 75 characters long.
 
 Return JSON:
-{
-  "cast": [
-    { "actor": "Leonardo DiCaprio", "character": "Dom Cobb" }
-  ],
-  "sentences": [
-    [{"text": "CharacterName", "role": "hero"}, {"text": " makes a series of bad choices."}]
-  ]
-}
+{"cast":[{"actor":"A","character":"C"}],"sentences":[[{"text":"N","role":"hero/heroine/villain/other"},{"text":" text "}]]}
 
-Cast rules:
-- Include the main cast members (up to 15)
-- Order by billing/importance
-
-Token rules:
-- Each sentence is an array of tokens (objects with "text" and optionally "role")
-- Character name tokens MUST have "role": exactly one of "hero", "heroine", "villain", or "other"
-- Non-character tokens only have "text" and MUST include leading/trailing spaces
-
-Sentence rules:
-- Exactly ${plotLimit} sentences, chronological order
-- Every sentence must mention at least one character by name
-- Never apologize for the movie; just roast it based on the facts provided.`;
+Rules:
+- 5 funny sentences (<110 chars each) mocking the context.
+- Every sentence MUST name a character.
+- Roles: 1 hero, 1 heroine, 1 villain, others "other".`;
 
 const castFromGroqGet = (groqCast) =>
   groqCast.reduce(
@@ -145,20 +110,26 @@ const tokensTextJoinedGet = (tokens) =>
 
 const roleNameFromSentencesGet = (sentences, role) =>
   sentences.reduce(
-    (memo, tokens) =>
-      memo || (tokens.find((t) => t.role === role)?.text || null),
+    (memo, tokens) => {
+      if (memo) return memo;
+      
+      if (!Array.isArray(tokens)) return null;
+
+      const token = tokens.find((t) => t.role === role);
+      return token ? token.text : null;
+    },
     null
   );
 
 export default async (title, plotLimit) => {
 
-  // Fetch "Roastable" RAG context with a timeout
-  console.log(`[RAG] START: Extracting roast material for "${title}"...`);
+  // Fetch plot-focused RAG context
+  console.log(`[RAG] START: Extracting plot details for "${title}"...`);
   broadcastStatus(title, 'Reading Wikipedia archives...');
   const ragResults = await Promise.race([
     movieRagGet(
       title,
-      `What are the most ridiculous, logic-defying, or heavily criticized plot points and character motivations in ${title}?`
+      `What are the most important and most absurd plot points and key scenes in the movie ${title}?`
     ),
     new Promise((_, reject) => setTimeout(() => reject(new Error('RAG Timeout')), 15000))
   ]).catch((error) => {
@@ -171,8 +142,8 @@ export default async (title, plotLimit) => {
     ? ragResults.map((r) => r.text).join('\n\n')
     : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
 
-  console.log(`[LLM] START: Requesting roast and poster for "${title}"...`);
-  broadcastStatus(title, 'Consulting AI for the perfect roast...');
+  console.log(`[LLM] START: Requesting summary and poster for "${title}"...`);
+  broadcastStatus(title, 'Consulting AI for the plot summary...');
   
   const [poster, llmResult] = await Promise.all([
     posterGet(title).then(res => {

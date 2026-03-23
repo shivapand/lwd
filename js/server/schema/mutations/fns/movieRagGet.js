@@ -29,13 +29,17 @@ const movieRagGet = async (title, queryText = '') => {
     }
 
     // eslint-disable-next-line no-console
-    console.log(`[RAG] Chunking text (${wikiText.length} chars)...`);
-    broadcastStatus(title, `Chunking ${wikiText.length} characters of text...`);
+    console.log(`[RAG] Extracting Plot section from (${wikiText.length} chars)...`);
+    broadcastStatus(title, `Extracting plot details...`);
 
-    const chunks = textChunk(wikiText, 800, 100);
+    // Robust plot extraction: look for "== Plot ==" and take everything until the next header
+    const plotMatch = wikiText.match(/== Plot ==([\s\S]*?)(?=== [^=]+ ==|$)/i);
+    const plotText = plotMatch ? plotMatch[1].trim() : wikiText;
+
+    const chunks = textChunk(plotText, 300, 50);
 
     // eslint-disable-next-line no-console
-    console.log(`[RAG] Generating embeddings for ${chunks.length} chunks...`);
+    console.log(`[RAG] Generating embeddings for ${chunks.length} plot chunks...`);
     broadcastStatus(title, `Generating embeddings for ${chunks.length} chunks...`);
 
     const embeddings = await embeddingsGet(chunks);
@@ -89,7 +93,7 @@ const movieRagGet = async (title, queryText = '') => {
     // Sort by similarity descending
     results.sort((a, b) => b.score - a.score);
 
-    const topResults = results.slice(0, 5);
+    const topResults = results.slice(0, 3);
     
     // eslint-disable-next-line no-console
     console.log(`[RAG] COMPLETED: Found ${topResults.length} relevant chunks.`);
