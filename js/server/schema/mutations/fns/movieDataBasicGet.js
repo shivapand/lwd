@@ -36,7 +36,7 @@ Return JSON with exactly this structure:
 }
 
 Rules:
-- ${plotLimit} to 8 sentences (<150 chars each) with proper grammar.
+- ${plotLimit} to 8 sentences (<125 chars each) with proper grammar.
 - "sentences" is an array of arrays.
 - Each inner array contains token objects: {"text": "...", "role": "..."}.
 - Roles: pick exactly 1 hero, 1 heroine, 1 villain. others "other".
