@@ -93,6 +93,10 @@ const spoofNamesShuffledGet = (
           ) :
 
             return -1;
+
+          default:
+
+            return 0;
         }
       }
     )

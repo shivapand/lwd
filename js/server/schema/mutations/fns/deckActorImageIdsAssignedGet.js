@@ -54,6 +54,10 @@ const shuffledGet = (
           ) :
 
             return -1;
+
+          default:
+
+            return 0;
         }
       }
     )
@@ -176,6 +180,10 @@ const spoofActorsSortedGet = (
         ) :
 
           return 1;
+
+        default:
+
+          return 0;
       }
     }
   );
@@ -453,6 +461,10 @@ const actorImageIdsSortedByWeightGet = (
           ) :
 
             return 1;
+
+          default:
+
+            return 0;
         }
       }
     )

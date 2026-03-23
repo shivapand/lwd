@@ -23,6 +23,13 @@ export default async (
     db
   );
 
+  if (
+    !movie
+  ) {
+
+    return next();
+  }
+
   await movieWrite(
     movie
   );

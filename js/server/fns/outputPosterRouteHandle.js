@@ -89,6 +89,13 @@ export default async (
     db
   );
 
+  if (
+    !movie
+  ) {
+
+    return res.status(404).end();
+  }
+
   const posterBuffer = await posterGet(
     movie.base64
   );

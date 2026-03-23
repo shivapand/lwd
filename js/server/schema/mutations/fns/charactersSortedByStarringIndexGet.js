@@ -26,6 +26,10 @@ export default (
         ) :
 
           return -1;
+
+        default:
+
+          return 0;
       }
     }
   );

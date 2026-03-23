@@ -27,7 +27,7 @@ const miffsGetFn = (
       const proc = exec(
         'convert - miff:-',
         {
-          encoding: base64
+          encoding: 'base64'
         },
         (
           error,

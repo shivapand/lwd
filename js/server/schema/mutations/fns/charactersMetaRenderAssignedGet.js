@@ -124,6 +124,10 @@ const charactersSplashIndexAssignedGetFn = (
         ) :
 
           return -1;
+
+        default:
+
+          return 0;
       }
     }
   );

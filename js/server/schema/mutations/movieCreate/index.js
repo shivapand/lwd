@@ -104,7 +104,7 @@ const deckRandomGet = async (
       0
     ];
 
-  const result = (!deck)
+  const result = (!deck || !deck.splash)
     ? await deckGetFn(
       'The Matrix',
       spoofInput,

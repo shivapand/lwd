@@ -5,13 +5,15 @@ const charactersRenderTextAssignedGetFn = (
   lengthMax
 ) => {
 
-  let text = _text.slice(
+  const textBase = _text || '';
+
+  let text = textBase.slice(
     0, lengthMax
   );
 
   if (
     text.length <
-    _text.length
+    textBase.length
   ) {
 
     text = `
