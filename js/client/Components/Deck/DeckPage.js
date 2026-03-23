@@ -99,6 +99,8 @@ const DeckPage = () => {
 
       loadingSet(true);
       errorSet(null);
+      deckSet(null); // Clear old deck so the loading screen is obvious
+      loadingMessageSet('Preparing cinematic data...');
 
       return fetch(
         `/api/deck/${
@@ -124,19 +126,18 @@ const DeckPage = () => {
 
             const actualTitle = data?.splash?.title;
 
-            return (actualTitle && actualTitle !== deckTitle)
-              ? window.history.replaceState(
-                null,
-                '',
+            if (actualTitle && actualTitle !== deckTitle) {
+              navigate(
                 `/deck/${
                   encodeURIComponent(actualTitle)
                 }?genre=${
                   encodeURIComponent(genre)
                 }&hero=${
                   encodeURIComponent(hero)
-                }`
-              )
-              : null;
+                }`,
+                { replace: true }
+              );
+            }
           }
         )
         .catch(

@@ -21,18 +21,23 @@ const posterGet = async (title) => {
   return json?.thumbnail?.source || PLACEHOLDER_POSTER;
 };
 
-const groqPromptGet = (title, plotLimit, ragContext = '') =>
+const groqPromptGet = (title, plotLimit) =>
   `Film: "${title}"
-Context:
-${ragContext}
 
-Return JSON:
-{"cast":[{"actor":"A","character":"C"}],"sentences":[[{"text":"N","role":"hero/heroine/villain/other"},{"text":" text "}]]}
+Return JSON with exactly this structure:
+{
+  "cast": [{"actor":"Name","character":"Name"}],
+  "sentences": [
+    [{"text":"Name","role":"hero"},{"text":" did something."}],
+    [{"text":"Name","role":"heroine"},{"text":" did something else."}]
+  ]
+}
 
 Rules:
-- 5 funny sentences (<110 chars each) with PROPER PUNCTUATION and GRAMMAR.
-- Every sentence MUST name a character.
-- Roles: 1 hero, 1 heroine, 1 villain, others "other".`;
+- 5 funny sentences (<110 chars each) with proper grammar.
+- "sentences" is an array of arrays.
+- Each inner array contains token objects: {"text": "...", "role": "..."}.
+- Roles: pick exactly 1 hero, 1 heroine, 1 villain. others "other".`;
 
 const castFromGroqGet = (groqCast) =>
   groqCast.reduce(
@@ -95,8 +100,14 @@ const castWithRolesGet = (cast, roles) => {
   );
 };
 
-const tokensTextJoinedGet = (tokens) =>
-  tokens.reduce(
+const tokensTextJoinedGet = (tokens) => {
+  if (!Array.isArray(tokens)) {
+    // eslint-disable-next-line no-console
+    console.warn('[LLM] tokens is not an array:', tokens);
+    return typeof tokens === 'string' ? tokens : '';
+  }
+
+  return tokens.reduce(
     (memo, t) => {
 
       const needsSpace = memo.length > 0 &&
@@ -108,6 +119,7 @@ const tokensTextJoinedGet = (tokens) =>
     },
     ''
   );
+};
 
 const roleNameFromSentencesGet = (sentences, role) =>
   sentences.reduce(
@@ -124,25 +136,6 @@ const roleNameFromSentencesGet = (sentences, role) =>
 
 export default async (title, plotLimit) => {
 
-  // Fetch plot-focused RAG context
-  console.log(`[RAG] START: Extracting plot details for "${title}"...`);
-  broadcastStatus(title, 'Reading Wikipedia archives...');
-  const ragResults = await Promise.race([
-    movieRagGet(
-      title,
-      `What are the most important and most absurd plot points and key scenes in the movie ${title}?`
-    ),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('RAG Timeout')), 15000))
-  ]).catch((error) => {
-    // eslint-disable-next-line no-console
-    console.error('RAG Error or Timeout:', error.message);
-    return [];
-  });
-
-  const ragContext = ragResults.length > 0
-    ? ragResults.map((r) => r.text).join('\n\n')
-    : `No specific Wikipedia data found for "${title}", use your general knowledge.`;
-
   console.log(`[LLM] START: Requesting summary and poster for "${title}"...`);
   broadcastStatus(title, 'Consulting AI for the plot summary...');
   
@@ -151,9 +144,13 @@ export default async (title, plotLimit) => {
       console.log(`[LLM] Poster fetched for "${title}".`);
       return res;
     }),
-    groqFetch(groqPromptGet(title, plotLimit, ragContext))
+    groqFetch(groqPromptGet(title, plotLimit))
       .then(res => {
-        if (res) console.log(`[LLM] Groq Result received for "${title}".`);
+        if (res) {
+          console.log(`[LLM] Groq Result received for "${title}".`);
+          // eslint-disable-next-line no-console
+          console.log('[LLM] Sample sentence structure:', JSON.stringify(res.sentences?.[0]));
+        }
         return res;
       })
       .catch((error) => {
