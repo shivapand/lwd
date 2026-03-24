@@ -39,7 +39,7 @@ const gifGetFn = (
           }
 
           return resolve(
-            stdout
+            stdout.replace(/[\r\n\s]+/g, '')
           );
         }
       );

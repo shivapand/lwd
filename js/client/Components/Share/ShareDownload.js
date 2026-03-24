@@ -83,29 +83,38 @@ const ShareDownload = (
             throw new Error('Movie data missing');
           }
 
-          const base64 = `data:image/gif;base64,${movie.base64}`;
+          const base64Data = movie.base64
+            .replace(/^data:image\/gif;base64,/, '')
+            .replace(/[\r\n\s]+/g, '');
 
           const filename = movie.path.split('/').pop();
 
-          console.log('Downloading...', filename, 'Base64 length:', base64.length);
+          console.log('Preparing download...', filename, 'Base64 length:', base64Data.length);
 
-          return Promise.resolve(
-            downloadjs(
-              base64,
-              filename,
-              'image/gif'
-            )
-          )
-            .then(
-              () => {
+          try {
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'image/gif' });
 
-                console.log('Download complete');
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
 
-                return Promise.resolve(
-                  props.onShareCompleted()
-                );
-              }
-            );
+            console.log('Download triggered');
+            return Promise.resolve(props.onShareCompleted());
+          } catch (e) {
+            console.error('Download processing failed:', e);
+            throw e;
+          }
         }
       );
   };
