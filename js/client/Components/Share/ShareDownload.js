@@ -77,6 +77,11 @@ const ShareDownload = (
       .then(
         (movie) => {
 
+          if (!movie || !movie.base64) {
+            console.error('Movie or base64 data is missing', movie);
+            throw new Error('Movie data missing');
+          }
+
           const base64 = `
             data:image/gif;base64,${
               movie.base64
@@ -90,14 +95,19 @@ const ShareDownload = (
             1
           ];
 
+          console.log('Downloading...', filename, 'Base64 length:', base64.length);
+
           return Promise.resolve(
             downloadjs(
               base64,
-              filename
+              filename,
+              'image/gif'
             )
           )
             .then(
               () => {
+
+                console.log('Download complete');
 
                 return Promise.resolve(
                   props.onShareCompleted()

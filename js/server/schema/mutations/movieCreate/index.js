@@ -267,7 +267,8 @@ const movieGet = async (
   );
 
   if (
-    existingMovie
+    existingMovie &&
+    existingMovie.base64
   ) {
 
     return existingMovie;
@@ -329,7 +330,8 @@ const outputGet = async (
     );
 
     if (
-      movie
+      movie &&
+      movie.base64
     ) {
 
       return movie;
