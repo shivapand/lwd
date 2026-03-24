@@ -69,7 +69,7 @@
 value=1.0
 
 # set directory for temporary files
-dir="."    # suggestions are dir="." or dir="/tmp"
+dir="/tmp"    # suggestions are dir="." or dir="/tmp"
 #
 #
 # set up functions to report Usage and Usage with Description

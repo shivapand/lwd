@@ -16,6 +16,7 @@ import {
   deckCreate as deckCreateFn
 } from '~/js/server/data/deck';
 import {
+  movieFindOne,
   movieCreate as movieCreateFn
 } from '~/js/server/data/movie';
 
@@ -174,6 +175,7 @@ const deckGet = async (
   spoofInput,
   genre,
   plotLimit,
+  isSearch,
   db
 ) => {
 
@@ -212,6 +214,31 @@ const deckGet = async (
 
     default :
 
+      if (
+        !isSearch
+      ) {
+
+        const deck = await deckFindOne(
+          {
+            'splash.title': text
+          },
+          undefined,
+          db
+        );
+
+        if (
+          deck
+        ) {
+
+          return deckCachedHandledGet(
+            deck,
+            spoofInput,
+            genre,
+            db
+          );
+        }
+      }
+
       return deckGetFn(
         text,
         spoofInput,
@@ -228,6 +255,23 @@ const movieGet = async (
   genre,
   db
 ) => {
+
+  const existingMovie = await movieFindOne(
+    {
+      title: deck.splash.title,
+      hero: spoofInput.hero,
+      genre
+    },
+    undefined,
+    db
+  );
+
+  if (
+    existingMovie
+  ) {
+
+    return existingMovie;
+  }
 
   const movie = (
     await gifRenderedGet(
@@ -265,14 +309,39 @@ const outputGet = async (
   genre,
   outputType,
   plotLimit,
+  isSearch,
   db
 ) => {
+
+  if (
+    outputType !== 'deck' &&
+    !isSearch
+  ) {
+
+    const movie = await movieFindOne(
+      {
+        title: text,
+        hero: spoofInput.hero,
+        genre
+      },
+      undefined,
+      db
+    );
+
+    if (
+      movie
+    ) {
+
+      return movie;
+    }
+  }
 
   const deck = await deckGet(
     text,
     spoofInput,
     genre,
     plotLimit,
+    isSearch,
     db
   );
 
@@ -374,7 +443,8 @@ export default async (
     genre = undefined,
     outputType = 'deck',
     createFlag = false,
-    plotLimit = 5
+    plotLimit = 5,
+    isSearch = false
   } = options;
 
   let output = await (
@@ -385,6 +455,7 @@ export default async (
       spoofInput,
       genre,
       plotLimit,
+      isSearch,
       db
     )
     : await outputGet(
@@ -393,6 +464,7 @@ export default async (
       genre,
       outputType,
       plotLimit,
+      isSearch,
       db
     );
 

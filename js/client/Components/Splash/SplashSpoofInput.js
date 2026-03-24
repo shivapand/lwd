@@ -12,10 +12,15 @@ import {
 import {
   css
 } from '@emotion/core';
+import {
+  useIsMounted
+} from 'fns';
 
 const SplashSpoofInput = (
   props
 ) => {
+
+  const isMounted = useIsMounted(false);
 
   const [
     searchParams
@@ -38,6 +43,21 @@ const SplashSpoofInput = (
   const inputRef = useRef(null);
   const spanRef = useRef(null);
   const [inputWidth, inputWidthSet] = useState(0);
+
+  useEffect(() => {
+    if (isFocused) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isFocused]);
 
   useEffect(
     () => {
@@ -64,6 +84,7 @@ const SplashSpoofInput = (
     
     console.log(`[UI] Name spoof triggered for: "${text}"`);
     isFocusedSet(false);
+    props.onBlur?.();
     
     if (inputRef.current) {
       inputRef.current.blur();
@@ -83,8 +104,19 @@ const SplashSpoofInput = (
 
   const onFocusHandle = () => {
     isFocusedSet(true);
+    props.onFocus?.();
     // Clear the text on edit so the user can type fresh
     textSet('');
+  };
+
+  const onBlurHandle = () => {
+    // Small delay to allow potential icon click to process first
+    setTimeout(() => {
+      if (isMounted.current) {
+        isFocusedSet(false);
+        props.onBlur?.();
+      }
+    }, 200);
   };
 
   const onIconClickHandle = (event) => {
@@ -177,6 +209,7 @@ const SplashSpoofInput = (
             onChange={onChangeHandle}
             onKeyDown={onKeyDownHandle}
             onFocus={onFocusHandle}
+            onBlur={onBlurHandle}
           />
           
           <i 

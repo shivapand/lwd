@@ -26,6 +26,10 @@ const Carousel = (
     {
       onSwipedLeft() {
 
+        if (props.isPaused) {
+          return;
+        }
+
         return $(
           carouselRef.current
         )
@@ -39,6 +43,10 @@ const Carousel = (
           );
       },
       onSwipedRight() {
+
+        if (props.isPaused) {
+          return;
+        }
 
         return $(
           carouselRef.current
@@ -80,10 +88,24 @@ const Carousel = (
     ]
   );
 
+  useEffect(() => {
+    if (props.isPaused) {
+      $(carouselRef.current).carousel('pause');
+    } else {
+      // If we unpause, we might want to resume auto-play if it was intended
+      // But based on current code, it's mostly manual or specifically triggered.
+      // Let's at least ensure it's not stuck in a weird state.
+    }
+  }, [props.isPaused]);
+
   const onClickHandle = (event) => {
 
     event.preventDefault();
     event.stopPropagation();
+
+    if (props.isPaused) {
+      return Promise.resolve();
+    }
 
     return Promise.resolve(
       $(

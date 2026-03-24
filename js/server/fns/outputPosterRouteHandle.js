@@ -1,5 +1,7 @@
 'use strict';
 
+import fs from 'fs';
+import path from 'path';
 import {
   spawn
 } from 'child_process';
@@ -81,6 +83,27 @@ export default async (
 
   const posterFilename = req.params.poster;
 
+  const posterPath = path.join(
+    process.cwd(),
+    `media/poster/${posterFilename}.jpg`
+  );
+
+  if (
+    fs.existsSync(
+      posterPath
+    )
+  ) {
+
+    res.set(
+      'Content-Type',
+      'image/jpeg'
+    );
+
+    return res.sendFile(
+      posterPath
+    );
+  }
+
   const movie = await movieFindOne(
     {
       path: `/output/${posterFilename}.gif`
@@ -98,6 +121,26 @@ export default async (
 
   const posterBuffer = await posterGet(
     movie.base64
+  );
+
+  fs.writeFile(
+    posterPath,
+    posterBuffer,
+    (
+      error
+    ) => {
+
+      if (
+        error
+      ) {
+
+        // eslint-disable-next-line no-console
+        console.error(
+          'poster write error:',
+          error
+        );
+      }
+    }
   );
 
   res.set(

@@ -125,6 +125,8 @@ export default async (
 
   const hero = req.query.hero || process.env.HERO || 'YOU!';
 
+  const isSearch = req.query.isSearch === 'true';
+
   return movieCreate(
     deckTitle,
     {
@@ -133,7 +135,8 @@ export default async (
       },
       genre,
       outputType: 'deck',
-      createFlag: true
+      createFlag: true,
+      isSearch
     },
     db,
     req

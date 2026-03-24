@@ -78,7 +78,7 @@ const ShareDownload = (
         (movie) => {
 
           const base64 = `
-            data:image/jpeg;base64,${
+            data:image/gif;base64,${
               movie.base64
             }
           `

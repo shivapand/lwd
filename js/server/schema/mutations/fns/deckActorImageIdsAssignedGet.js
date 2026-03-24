@@ -731,6 +731,26 @@ export default async (
   db
 ) => {
 
+  const charactersAlreadyAssigned = (deck.splash?.characters || [])
+    .some(
+      (c) => c.actorImageId
+    );
+
+  const cardsAlreadyAssigned = (deck.cards || [])
+    .some(
+      (c) => c.actorImageId
+    );
+
+  if (
+    charactersAlreadyAssigned &&
+    cardsAlreadyAssigned
+  ) {
+
+    return (
+      deck
+    );
+  }
+
   const starringActors = starringActorsFlatlistGet(
     deck.splash.characters
   );

@@ -54,6 +54,12 @@ const Splash = (
         onSplashSpoofInputTrigger = {
           props.onSplashSpoofInputTrigger
         }
+        onFocus = {
+          props.onFocus
+        }
+        onBlur = {
+          props.onBlur
+        }
       />
     );
   };

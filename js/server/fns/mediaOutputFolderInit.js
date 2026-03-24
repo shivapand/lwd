@@ -5,50 +5,23 @@ import path from 'path';
 
 export default () => {
 
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
+  const paths = [
+    'media/output',
+    'media/poster'
+  ];
 
-      const mediaOutputFolderPath = path.join(
-        process.cwd(),
-        'media/output'
-      );
-
-      if (
-        !fs.existsSync(
-          mediaOutputFolderPath
-        )
-      ) {
-
-        return fs.mkdir(
-          mediaOutputFolderPath,
-          {},
-          (
-            error,
-            res
-          ) => {
-
-            if (
-              error
-            ) {
-
-              return reject(
-                error
-              );
-            }
-
-            return resolve(
-              res
-            );
-          }
-        );
+  const createFolder = (folderPath) => {
+    return new Promise((resolve, reject) => {
+      const fullPath = path.join(process.cwd(), folderPath);
+      if (!fs.existsSync(fullPath)) {
+        return fs.mkdir(fullPath, { recursive: true }, (error) => {
+          if (error) return reject(error);
+          return resolve();
+        });
       }
+      return resolve();
+    });
+  };
 
-      return resolve(
-        null
-      );
-    }
-  );
+  return Promise.all(paths.map(createFolder));
 };

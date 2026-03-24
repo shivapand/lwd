@@ -37,7 +37,9 @@ export default async (_cards, title) => {
 
   const results = await Promise.all(
     _cards.map(
-      (_, index) => cardGifyUrlGet(title, index)
+      (card, index) => (card.gifyUrl)
+        ? Promise.resolve(card.gifyUrl)
+        : cardGifyUrlGet(title, index)
     )
   );
 

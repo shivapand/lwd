@@ -250,7 +250,7 @@ const MovieSearch = () => {
             searchParams.get('hero') ||
             process.env.HERO
           )
-        }`
+        }&isSearch=true`
       )
       : null;
   };

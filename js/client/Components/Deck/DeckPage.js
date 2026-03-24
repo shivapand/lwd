@@ -94,6 +94,13 @@ const DeckPage = () => {
     null
   );
 
+  const [
+    isEditing,
+    isEditingSet
+  ] = useState(
+    false
+  );
+
   const fetchDeck = useCallback(
     () => {
 
@@ -202,6 +209,12 @@ const DeckPage = () => {
         onSplashSpoofInputTrigger = {
           onSplashSpoofInputTriggerHandle
         }
+        onFocus = {
+          () => isEditingSet(true)
+        }
+        onBlur = {
+          () => isEditingSet(false)
+        }
       />
     );
   };
@@ -255,6 +268,7 @@ const DeckPage = () => {
       >
         <Carousel
           initialIndex = { `${deckTitle}-${hero}` }
+          isPaused = { isEditing }
         >
           {
             [
