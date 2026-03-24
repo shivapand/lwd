@@ -19,6 +19,7 @@ import {
   movieFindOne,
   movieCreate as movieCreateFn
 } from '~/js/server/data/movie';
+import movieWrite from '../fns/movieWrite';
 
 const sourceName = 'user';
 
@@ -151,6 +152,11 @@ const movieCreate = async (
     }
   `
     .trim();
+
+  await movieWrite({
+    ...movie,
+    path
+  });
 
   return movieCreateFn(
     {
@@ -395,9 +401,12 @@ const outputCreatedGet = (
       !!output._id
     ) :
 
-      return Promise.resolve(
+      return movieWrite(
         output
-      );
+      )
+        .then(
+          () => output
+        );
 
     case (
       !!output.base64
