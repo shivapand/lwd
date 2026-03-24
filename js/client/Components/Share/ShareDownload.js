@@ -17,6 +17,7 @@ import {
   useIsMounted
 } from 'fns';
 import downloadjs from 'downloadjs';
+import { config } from '../../../../package.json';
 
 const ShareDownload = (
   props
@@ -50,10 +51,10 @@ const ShareDownload = (
     const title = deckTitle;
 
     const genre = searchParams.get('genre') ||
-      process.env.GENRE;
+      config.GENRE;
 
     const hero = searchParams.get('hero') ||
-      process.env.HERO;
+      config.HERO;
 
     return fetch(
       '/api/movie',
@@ -82,18 +83,9 @@ const ShareDownload = (
             throw new Error('Movie data missing');
           }
 
-          const base64 = `
-            data:image/gif;base64,${
-              movie.base64
-            }
-          `
-            .trim();
+          const base64 = `data:image/gif;base64,${movie.base64}`;
 
-          const filename = movie.path.match(
-            /^\/output\/(.+)/
-          )?.[
-            1
-          ];
+          const filename = movie.path.split('/').pop();
 
           console.log('Downloading...', filename, 'Base64 length:', base64.length);
 
